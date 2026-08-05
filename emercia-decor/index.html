@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<!--
+  =====================================================================
+  EMERCIA DECOR — luxury perfume & deodorant house (for him & her)
+  ---------------------------------------------------------------------
+  Plain HTML + CSS + JS, single self-contained page. Features:
+    · noir-and-gold fragrance-house aesthetic, committed dark theme
+    · pointer-reactive 3D perfume bottle in the hero (CSS 3D transforms)
+    · cursor-tilt product cards with a moving glare (3D feel)
+    · luxe search overlay + live category filters over the fragrances
+    · scroll reveals, sticky nav, parallax glows
+
+  TO ADD REAL PHOTOGRAPHY: each ".shot" block is a styled placeholder —
+  drop an <img> in (or set background-image) and it fills the frame.
+
+  TO SET CONTACT DETAILS: replace hello@emerciadecor.com and the
+  WhatsApp number (wa.me/910000000000) in "Enquire" and the footer.
+  =====================================================================
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Emercia Decor — Fragrance for Him &amp; Her</title>
+    <meta name="description" content="Emercia Decor — a luxury perfume and deodorant house. Eau de parfum, body mists and deodorants for men and women, built on rare notes and lasting wear." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --noir: #0c0a09; --noir-2: #131010; --panel: #1a1512; --panel-2: #221a16;
+        --line: rgba(201, 165, 78, 0.20); --line-soft: rgba(245, 239, 230, 0.08);
+        --ivory: #f5efe6; --ivory-dim: #cabfb0; --muted: #a99b88;
+        --gold: #c9a54e; --gold-bright: #e6cd8b; --amber: #b5763a; --rose: #b8798a;
+        --shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+        color-scheme: dark;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+      body {
+        margin: 0; background: var(--noir); color: var(--ivory);
+        font-family: "Jost", system-ui, -apple-system, "Segoe UI", sans-serif;
+        font-weight: 300; line-height: 1.7; -webkit-font-smoothing: antialiased; overflow-x: hidden;
+      }
+      h1, h2, h3, .serif { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 400; margin: 0; letter-spacing: 0.005em; }
+      a { color: inherit; text-decoration: none; }
+      img { max-width: 100%; display: block; }
+      button { font-family: inherit; }
+
+      .wrap { width: min(1180px, 100% - 3rem); margin-inline: auto; }
+      .eyebrow { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.42em; text-transform: uppercase; color: var(--gold); margin: 0; }
+      .rule { width: 46px; height: 1px; background: linear-gradient(90deg, var(--gold), transparent); border: 0; margin: 1.4rem 0; }
+      .rule--center { margin-inline: auto; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+      .icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+      /* ---------- top nav ---------- */
+      .nav { position: fixed; inset: 0 0 auto 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 1.4rem clamp(1.5rem, 4vw, 3.5rem); transition: background 0.4s ease, padding 0.4s ease, border-color 0.4s ease; border-bottom: 1px solid transparent; }
+      .nav.is-stuck { background: color-mix(in srgb, var(--noir) 86%, transparent); backdrop-filter: blur(12px); padding-block: 0.95rem; border-bottom-color: var(--line); }
+      .nav__brand { font-family: "Cormorant Garamond", serif; font-size: 1.4rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ivory); }
+      .nav__brand b { font-weight: 500; color: var(--gold); }
+      .nav__links { display: flex; gap: 2.2rem; align-items: center; }
+      .nav__links a { font-size: 0.76rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ivory-dim); transition: color 0.25s ease; position: relative; }
+      .nav__links a::after { content: ""; position: absolute; left: 0; bottom: -6px; height: 1px; width: 0; background: var(--gold); transition: width 0.3s ease; }
+      .nav__links a:hover { color: var(--ivory); }
+      .nav__links a:hover::after { width: 100%; }
+      .nav__search { display: inline-flex; align-items: center; gap: 0.55rem; padding: 0.55rem 0.9rem; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ivory-dim); cursor: pointer; transition: color 0.25s ease, border-color 0.25s ease, background 0.25s ease; letter-spacing: 0.16em; text-transform: uppercase; font-size: 0.66rem; }
+      .nav__search:hover { color: var(--ivory); border-color: var(--gold); }
+      .nav__cta { padding: 0.6rem 1.2rem; border: 1px solid var(--line); border-radius: 2px; color: var(--gold-bright) !important; }
+      .nav__cta::after { display: none; }
+      .nav__cta:hover { background: color-mix(in srgb, var(--gold) 12%, transparent); }
+      @media (max-width: 900px) { .nav__links a:not(.nav__cta):not(.nav__search) { display: none; } .nav__search span { display: none; } }
+
+      /* ---------- hero ---------- */
+      .hero { position: relative; min-height: 100svh; display: grid; align-items: center; padding: 7rem 0 4rem; overflow: hidden; }
+      .hero::before { content: ""; position: absolute; inset: 0; z-index: 0; background: radial-gradient(56% 55% at 82% 26%, color-mix(in srgb, var(--amber) 36%, transparent), transparent 70%), radial-gradient(46% 48% at 10% 86%, color-mix(in srgb, var(--rose) 22%, transparent), transparent 72%), linear-gradient(180deg, var(--noir-2), var(--noir)); }
+      .hero::after { content: ""; position: absolute; inset: 0; z-index: 0; opacity: 0.5; background-image: radial-gradient(rgba(245, 239, 230, 0.05) 1px, transparent 1px); background-size: 3px 3px; mask-image: radial-gradient(80% 80% at 50% 40%, #000, transparent 78%); }
+      .hero__inner { position: relative; z-index: 2; display: grid; grid-template-columns: 1.05fr 0.95fr; align-items: center; gap: clamp(1rem, 5vw, 4rem); }
+      @media (max-width: 900px) { .hero__inner { grid-template-columns: 1fr; } }
+      .hero__eyebrow { animation: rise 0.9s 0.05s both cubic-bezier(0.2, 0.8, 0.2, 1); }
+      .hero h1 { font-size: clamp(3.2rem, 9vw, 7.4rem); line-height: 0.94; letter-spacing: -0.01em; margin: 1.4rem 0 0; animation: rise 1s 0.15s both cubic-bezier(0.2, 0.8, 0.2, 1); }
+      .hero h1 em { font-style: italic; color: var(--gold-bright); }
+      .hero__lede { max-width: 44ch; margin: 1.8rem 0 0; font-size: 1.06rem; color: var(--ivory-dim); animation: rise 1s 0.3s both cubic-bezier(0.2, 0.8, 0.2, 1); }
+      .hero__actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2.6rem; animation: rise 1s 0.42s both cubic-bezier(0.2, 0.8, 0.2, 1); }
+      @keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+
+      .btn { display: inline-flex; align-items: center; gap: 0.7rem; padding: 0.95rem 1.9rem; border-radius: 2px; font-size: 0.78rem; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: transform 0.25s ease, background 0.3s ease, color 0.3s ease; border: 1px solid var(--gold); background: transparent; color: var(--ivory); }
+      .btn--solid { background: var(--gold); color: var(--noir); font-weight: 500; }
+      .btn--solid:hover { background: var(--gold-bright); transform: translateY(-2px); }
+      .btn--ghost { color: var(--gold-bright); border-color: var(--line); }
+      .btn--ghost:hover { border-color: var(--gold); transform: translateY(-2px); }
+
+      .hero__scroll { position: absolute; left: 50%; bottom: 1.6rem; transform: translateX(-50%); z-index: 2; font-size: 0.66rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); display: grid; justify-items: center; gap: 0.6rem; }
+      .hero__scroll span { width: 1px; height: 40px; background: linear-gradient(var(--gold), transparent); }
+
+      /* ---------- 3D perfume bottle ---------- */
+      .stage3d { position: relative; display: grid; place-items: center; min-height: 460px; perspective: 1100px; animation: rise 1.1s 0.35s both cubic-bezier(0.2, 0.8, 0.2, 1); }
+      @media (max-width: 900px) { .stage3d { min-height: 380px; } }
+      .b-aura { position: absolute; width: 320px; height: 320px; border-radius: 50%; background: conic-gradient(from 0deg, transparent, color-mix(in srgb, var(--gold) 30%, transparent), transparent 40%, color-mix(in srgb, var(--rose) 24%, transparent), transparent 75%); filter: blur(38px); opacity: 0.6; animation: spin 18s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .bottle-float { transform-style: preserve-3d; animation: float 6.5s ease-in-out infinite; }
+      @keyframes float { 0%, 100% { transform: translateY(-6px); } 50% { transform: translateY(10px); } }
+      .bottle-3d { position: relative; transform-style: preserve-3d; transform: rotateX(var(--rx, 4deg)) rotateY(var(--ry, -20deg)); transition: transform 0.25s ease-out; }
+
+      .b-cap { width: 62px; height: 66px; margin: 0 auto -6px; border-radius: 6px 6px 4px 4px; background: linear-gradient(150deg, #2a2320, #0f0c0a); border: 1px solid var(--line); transform: translateZ(30px); box-shadow: inset 0 8px 14px rgba(255, 255, 255, 0.06); }
+      .b-collar { width: 78px; height: 16px; margin: 0 auto; border-radius: 4px; background: linear-gradient(180deg, var(--gold-bright), var(--amber)); transform: translateZ(30px); box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5); }
+      .b-body { position: relative; width: 176px; height: 244px; margin: 0 auto; border-radius: 18px 18px 22px 22px; transform: translateZ(0); background: linear-gradient(120deg, rgba(245, 239, 230, 0.16), rgba(245, 239, 230, 0.03) 42%, rgba(18, 14, 12, 0.5)); border: 1px solid rgba(245, 239, 230, 0.16); box-shadow: inset 0 0 40px rgba(255, 255, 255, 0.06), var(--shadow); overflow: hidden; }
+      /* amber juice */
+      .b-body::before { content: ""; position: absolute; inset: 34% 0 0; background: linear-gradient(180deg, color-mix(in srgb, var(--amber) 78%, transparent), color-mix(in srgb, #5a2f16 90%, transparent)); opacity: 0.9; }
+      /* glass highlight streak */
+      .b-body::after { content: ""; position: absolute; top: 8px; left: 14px; width: 26px; height: 88%; border-radius: 20px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0)); filter: blur(2px); opacity: 0.5; }
+      .b-label { position: absolute; z-index: 2; left: 50%; top: 52%; transform: translate(-50%, -50%) translateZ(40px); text-align: center; width: 120px; }
+      .b-label .mono { font-family: "Cormorant Garamond", serif; font-size: 2.6rem; color: var(--gold-bright); line-height: 1; }
+      .b-label small { display: block; font-size: 0.5rem; letter-spacing: 0.34em; text-transform: uppercase; color: var(--ivory); margin-top: 0.3rem; }
+      .b-reflection { width: 176px; height: 60px; margin: 8px auto 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(201, 165, 78, 0.28), transparent 70%); filter: blur(6px); transform: rotateX(60deg) translateZ(-20px); }
+      .b-hint { position: absolute; bottom: -2.2rem; left: 0; right: 0; text-align: center; font-size: 0.62rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); }
+      @media (prefers-reduced-motion: reduce) { .bottle-float, .b-aura { animation: none; } }
+
+      /* ---------- section frame ---------- */
+      section { position: relative; }
+      .band { padding: clamp(5rem, 12vh, 9rem) 0; }
+      .band--panel { background: linear-gradient(180deg, var(--noir), var(--noir-2)); }
+      .reveal { opacity: 0; transform: translateY(34px); transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1); }
+      .reveal.is-in { opacity: 1; transform: none; }
+      @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+      .lead-h2 { font-size: clamp(2.2rem, 5vw, 3.7rem); line-height: 1.06; max-width: 18ch; }
+      .lead-h2 em { font-style: italic; color: var(--gold-bright); }
+      .measure { max-width: 52ch; color: var(--ivory-dim); }
+
+      /* ---------- house split ---------- */
+      .ethos { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: clamp(2rem, 6vw, 5rem); align-items: center; }
+      @media (max-width: 860px) { .ethos { grid-template-columns: 1fr; } }
+      .ethos__stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-top: 2.4rem; }
+      .stat { border-top: 1px solid var(--line); padding-top: 1rem; }
+      .stat b { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 2.6rem; color: var(--gold-bright); display: block; line-height: 1; }
+      .stat span { font-size: 0.74rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+
+      .shot { position: relative; overflow: hidden; border-radius: 3px; border: 1px solid var(--line); background: linear-gradient(135deg, var(--panel-2), #2a1c14 150%), var(--panel); display: grid; place-items: center; min-height: 260px; }
+      .shot::after { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 90% at 30% 0%, color-mix(in srgb, var(--gold) 16%, transparent), transparent 55%); }
+      .shot__label { position: relative; z-index: 1; text-align: center; padding: 1.4rem; color: var(--ivory-dim); }
+      .shot__label .serif { display: block; font-size: 1.5rem; color: var(--ivory); }
+      .shot__label small { font-size: 0.66rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); }
+      .ethos .shot { min-height: 440px; box-shadow: var(--shadow); }
+
+      /* ---------- fragrances: filters + 3D-tilt grid ---------- */
+      .collections__head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem; }
+      .filters { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 2.4rem; }
+      .chip { padding: 0.5rem 1.1rem; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ivory-dim); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; transition: color 0.25s ease, background 0.25s ease, border-color 0.25s ease; }
+      .chip:hover { color: var(--ivory); border-color: var(--gold); }
+      .chip.is-active { background: var(--gold); color: var(--noir); border-color: var(--gold); font-weight: 500; }
+
+      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; perspective: 1000px; }
+      @media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+      .card { position: relative; overflow: hidden; border-radius: 4px; border: 1px solid var(--line); min-height: 340px; display: flex; align-items: flex-end; transform-style: preserve-3d; background: linear-gradient(160deg, var(--panel-2), #2a1c14 170%), var(--panel); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.4s ease, box-shadow 0.4s ease; will-change: transform; }
+      .card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 70% at 80% 10%, color-mix(in srgb, var(--gold) 16%, transparent), transparent 55%); opacity: 0.9; transition: opacity 0.5s ease; }
+      .card:hover { border-color: var(--gold); box-shadow: var(--shadow); }
+      .card.is-hidden { display: none; }
+      .card__glare { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0; background: radial-gradient(circle at var(--gx, 50%) var(--gy, 0%), rgba(255, 255, 255, 0.22), transparent 45%); transition: opacity 0.3s ease; }
+      .card:hover .card__glare { opacity: 1; }
+      .card__body { position: relative; z-index: 1; padding: 1.6rem; transform: translateZ(28px); }
+      .card__body small { font-size: 0.64rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); }
+      .card__body h3 { font-size: 1.8rem; margin: 0.3rem 0 0.4rem; }
+      .card__body p { margin: 0; font-size: 0.9rem; color: var(--ivory-dim); }
+      .card__index { position: absolute; top: 1.2rem; right: 1.4rem; z-index: 1; font-family: "Cormorant Garamond", serif; font-size: 1rem; color: var(--muted); letter-spacing: 0.1em; transform: translateZ(20px); }
+      .card__tag { position: absolute; top: 1.2rem; left: 1.4rem; z-index: 1; font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--noir); background: var(--gold); padding: 0.2rem 0.55rem; border-radius: 2px; transform: translateZ(20px); }
+      .card.is-flash { animation: flash 1.1s ease; }
+      @keyframes flash { 0%, 100% { box-shadow: var(--shadow); } 30% { box-shadow: 0 0 0 2px var(--gold), var(--shadow); } }
+      .no-results { color: var(--muted); font-style: italic; font-family: "Cormorant Garamond", serif; font-size: 1.3rem; padding: 2rem 0; }
+
+      /* ---------- signature + notes ---------- */
+      .signature { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: clamp(2rem, 6vw, 5rem); align-items: center; }
+      @media (max-width: 860px) { .signature { grid-template-columns: 1fr; } }
+      .signature .shot { min-height: 480px; box-shadow: var(--shadow); }
+      .notes { display: grid; gap: 0.9rem; margin-top: 1.8rem; }
+      .note-row { display: grid; grid-template-columns: 92px 1fr; gap: 1.2rem; align-items: baseline; padding-bottom: 0.9rem; border-bottom: 1px solid var(--line-soft); }
+      .note-row dt { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); }
+      .note-row dd { margin: 0; color: var(--ivory); font-family: "Cormorant Garamond", serif; font-size: 1.3rem; }
+
+      /* ---------- experience ---------- */
+      .services { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
+      @media (max-width: 860px) { .services { grid-template-columns: 1fr; } }
+      .service { border: 1px solid var(--line-soft); border-top: 2px solid var(--gold); border-radius: 3px; padding: 2rem 1.8rem; background: color-mix(in srgb, var(--panel) 60%, transparent); transition: background 0.4s ease, transform 0.4s ease; }
+      .service:hover { background: var(--panel); transform: translateY(-4px); }
+      .service h3 { font-size: 1.7rem; margin-bottom: 0.6rem; }
+      .service p { margin: 0; color: var(--ivory-dim); font-size: 0.94rem; }
+
+      /* ---------- quote ---------- */
+      .quote { text-align: center; max-width: 40ch; margin-inline: auto; }
+      .quote blockquote { font-family: "Cormorant Garamond", serif; font-style: italic; font-size: clamp(1.8rem, 4.4vw, 3rem); line-height: 1.22; margin: 1.4rem 0; }
+      .quote cite { font-style: normal; font-size: 0.74rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--gold); }
+
+      /* ---------- enquire ---------- */
+      .enquire { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 6vw, 5rem); align-items: center; }
+      @media (max-width: 860px) { .enquire { grid-template-columns: 1fr; } }
+      .form { display: grid; gap: 1rem; }
+      .form label { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); display: grid; gap: 0.5rem; }
+      .form input, .form textarea, .form select { font-family: inherit; font-size: 0.98rem; color: var(--ivory); background: var(--panel); border: 1px solid var(--line-soft); border-radius: 2px; padding: 0.85rem 1rem; outline: none; transition: border-color 0.25s ease; width: 100%; }
+      .form textarea { resize: vertical; min-height: 5rem; }
+      .form input:focus, .form textarea:focus, .form select:focus { border-color: var(--gold); }
+      .form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+      @media (max-width: 520px) { .form__row { grid-template-columns: 1fr; } }
+
+      /* ---------- footer ---------- */
+      footer { border-top: 1px solid var(--line); padding: 4rem 0 2.5rem; background: var(--noir-2); }
+      .foot { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 2.5rem; }
+      @media (max-width: 760px) { .foot { grid-template-columns: 1fr; gap: 1.8rem; } }
+      .foot__brand { font-family: "Cormorant Garamond", serif; font-size: 1.7rem; letter-spacing: 0.2em; text-transform: uppercase; }
+      .foot__brand b { color: var(--gold); font-weight: 500; }
+      .foot h4 { font-size: 0.7rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); margin: 0 0 1rem; font-weight: 500; }
+      .foot a, .foot p { color: var(--ivory-dim); font-size: 0.92rem; margin: 0 0 0.5rem; transition: color 0.25s ease; }
+      .foot a:hover { color: var(--gold-bright); }
+      .foot__legal { margin-top: 3rem; padding-top: 1.6rem; border-top: 1px solid var(--line-soft); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; font-size: 0.76rem; color: var(--muted); }
+
+      /* ---------- search overlay ---------- */
+      .search { position: fixed; inset: 0; z-index: 100; display: grid; place-items: start center; padding: clamp(3rem, 12vh, 8rem) 1rem 2rem; }
+      .search[hidden] { display: none; }
+      .search__backdrop { position: absolute; inset: 0; background: color-mix(in srgb, var(--noir) 78%, transparent); backdrop-filter: blur(10px); animation: fade 0.2s ease; }
+      @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+      .search__panel { position: relative; width: min(680px, 100%); max-height: min(72vh, 640px); display: flex; flex-direction: column; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); box-shadow: var(--shadow); overflow: hidden; animation: pop 0.24s cubic-bezier(0.2, 0.8, 0.2, 1); }
+      @keyframes pop { from { opacity: 0; transform: translateY(-12px) scale(0.98); } to { opacity: 1; transform: none; } }
+      .search__field { display: flex; align-items: center; gap: 0.8rem; padding: 1.1rem 1.2rem; border-bottom: 1px solid var(--line-soft); color: var(--gold); }
+      .search__field input { flex: 1; border: 0; background: none; color: var(--ivory); font: inherit; font-size: 1.1rem; outline: none; }
+      .search__field input::placeholder { color: var(--muted); }
+      .search__close { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; }
+      .search__results { margin: 0; padding: 0.5rem; list-style: none; overflow-y: auto; }
+      .search__result { display: flex; align-items: center; gap: 1rem; padding: 0.9rem 1rem; border-radius: 4px; cursor: pointer; border: 1px solid transparent; transition: background 0.2s ease, border-color 0.2s ease; }
+      .search__result:hover, .search__result.is-cursor { background: color-mix(in srgb, var(--gold) 10%, transparent); border-color: var(--line); }
+      .search__result .r-name { font-family: "Cormorant Garamond", serif; font-size: 1.25rem; color: var(--ivory); }
+      .search__result .r-meta { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+      .search__result .r-notes { font-size: 0.82rem; color: var(--muted); margin-left: auto; text-align: right; max-width: 46%; }
+      .search__empty { padding: 1.6rem 1.2rem 2rem; text-align: center; color: var(--muted); font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 1.2rem; }
+      .search__foot { padding: 0.7rem 1.2rem; border-top: 1px solid var(--line-soft); font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); display: flex; gap: 1.4rem; }
+    </style>
+  </head>
+
+  <body id="top">
+    <!-- ===================== NAV ===================== -->
+    <nav class="nav" id="nav">
+      <a class="nav__brand" href="#top">Emercia<b> Decor</b></a>
+      <div class="nav__links">
+        <a href="#house">The House</a>
+        <a href="#collections">Fragrances</a>
+        <a href="#signature">Signature</a>
+        <a href="#services">Experience</a>
+        <button class="nav__search" id="search-open" type="button" aria-label="Search fragrances">
+          <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+          <span>Search</span>
+        </button>
+        <a class="nav__cta" href="#enquire">Enquire</a>
+      </div>
+    </nav>
+
+    <!-- ===================== HERO ===================== -->
+    <header class="hero">
+      <div class="wrap hero__inner">
+        <div>
+          <p class="eyebrow hero__eyebrow">Perfume &amp; Deodorant &nbsp;·&nbsp; For Him &amp; Her</p>
+          <h1>Wear Your<br /><em>Signature</em></h1>
+          <p class="hero__lede">
+            A modern fragrance house — eau de parfum, body mists and deodorants built on rare
+            notes and lasting wear. Scents that don't announce you, but stay with everyone who
+            meets you.
+          </p>
+          <div class="hero__actions">
+            <a class="btn btn--solid" href="#collections">Discover the Fragrances</a>
+            <a class="btn btn--ghost" href="#signature">Find Your Scent</a>
+          </div>
+        </div>
+
+        <!-- pointer-reactive 3D bottle -->
+        <div class="stage3d" id="stage3d">
+          <div class="b-aura"></div>
+          <div class="bottle-float">
+            <div class="bottle-3d" id="bottle3d">
+              <div class="b-cap"></div>
+              <div class="b-collar"></div>
+              <div class="b-body">
+                <div class="b-label"><span class="mono">E</span><small>Emercia</small></div>
+              </div>
+              <div class="b-reflection"></div>
+            </div>
+          </div>
+          <p class="b-hint">Move your cursor</p>
+        </div>
+      </div>
+      <div class="hero__scroll">Scroll<span></span></div>
+    </header>
+
+    <!-- ===================== THE HOUSE ===================== -->
+    <section class="band band--panel" id="house">
+      <div class="wrap ethos">
+        <div class="reveal">
+          <p class="eyebrow">The House</p>
+          <hr class="rule" />
+          <h2 class="lead-h2">Scent is the most <em>personal</em> luxury.</h2>
+          <p class="measure" style="margin-top:1.6rem;">
+            Emercia Decor was founded on a simple belief: a fragrance should feel made for one
+            person. We blend in small batches, age our compositions, and hold every bottle to
+            the same standard — rich at first breath, and honest hours later.
+          </p>
+          <p class="measure">For him, for her, and for those who wear whatever they please — our house is built around the notes, not the labels.</p>
+          <div class="ethos__stats">
+            <div class="stat"><b>24</b><span>Fragrances</span></div>
+            <div class="stat"><b>20%</b><span>Parfum Concentration</span></div>
+            <div class="stat"><b>12h+</b><span>Lasting Wear</span></div>
+            <div class="stat"><b>0%</b><span>Cruelty · Ever</span></div>
+          </div>
+        </div>
+        <div class="reveal shot">
+          <div class="shot__label"><small>The House</small><span class="serif">Emercia Signature</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== FRAGRANCES ===================== -->
+    <section class="band" id="collections">
+      <div class="wrap">
+        <div class="collections__head reveal">
+          <div>
+            <p class="eyebrow">The Fragrances</p>
+            <hr class="rule" />
+            <h2 class="lead-h2">A wardrobe of <em>scent</em>.</h2>
+          </div>
+          <p class="measure">Eau de parfum, everyday deodorants and layering mists — for him, for her, for both.</p>
+        </div>
+
+        <div class="filters reveal" id="filters">
+          <button class="chip is-active" data-filter="all" type="button">All</button>
+          <button class="chip" data-filter="her" type="button">For Her</button>
+          <button class="chip" data-filter="him" type="button">For Him</button>
+          <button class="chip" data-filter="unisex" type="button">Unisex</button>
+          <button class="chip" data-filter="deodorant" type="button">Deodorants &amp; Mists</button>
+          <button class="chip" data-filter="gift" type="button">Gifting</button>
+        </div>
+
+        <div class="grid" id="grid">
+          <article class="card reveal" data-cat="her" data-name="Rose Noir" data-notes="Bulgarian rose, pink pepper, amber">
+            <div class="card__glare"></div>
+            <span class="card__tag">For Her</span><span class="card__index">I</span>
+            <div class="card__body"><small>Eau de Parfum</small><h3>Rose Noir</h3><p>Bulgarian rose, pink pepper and warm amber — soft, modern and unmistakably feminine.</p></div>
+          </article>
+          <article class="card reveal" data-cat="him" data-name="Oud Impérial" data-notes="Smoked oud, leather, cedar">
+            <div class="card__glare"></div>
+            <span class="card__tag">For Him</span><span class="card__index">II</span>
+            <div class="card__body"><small>Eau de Parfum</small><h3>Oud Impérial</h3><p>Smoked oud, leather and cedar — confident, deep and made to be remembered.</p></div>
+          </article>
+          <article class="card reveal" data-cat="unisex" data-name="Blanc Musk" data-notes="White musk, bergamot, vetiver">
+            <div class="card__glare"></div>
+            <span class="card__tag">Unisex</span><span class="card__index">III</span>
+            <div class="card__body"><small>Eau de Parfum</small><h3>Blanc Musk</h3><p>Clean white musk, bergamot and vetiver — the everyday signature that suits anyone.</p></div>
+          </article>
+          <article class="card reveal" data-cat="deodorant" data-name="Deodorants" data-notes="All-day, alcohol-free, house notes">
+            <div class="card__glare"></div>
+            <span class="card__index">IV</span>
+            <div class="card__body"><small>Daily · Him &amp; Her</small><h3>Deodorants</h3><p>All-day protection carrying the same house notes — alcohol-free, gentle, long-lasting.</p></div>
+          </article>
+          <article class="card reveal" data-cat="deodorant" data-name="Body Mists" data-notes="Light veils, layering, refresh">
+            <div class="card__glare"></div>
+            <span class="card__index">V</span>
+            <div class="card__body"><small>Layering</small><h3>Body Mists</h3><p>Lighter veils of your favourite scents — to refresh, layer and carry anywhere.</p></div>
+          </article>
+          <article class="card reveal" data-cat="gift" data-name="Sets &amp; Editions" data-notes="Discovery set, gifting, boxed">
+            <div class="card__glare"></div>
+            <span class="card__tag">Gift</span><span class="card__index">VI</span>
+            <div class="card__body"><small>Discovery &amp; Gifting</small><h3>Sets &amp; Editions</h3><p>Miniature discovery sets and gift-ready editions, beautifully boxed for every occasion.</p></div>
+          </article>
+        </div>
+        <p class="no-results" id="no-results" hidden>No fragrances match — try another search.</p>
+      </div>
+    </section>
+
+    <!-- ===================== SIGNATURE + NOTES ===================== -->
+    <section class="band band--panel" id="signature">
+      <div class="wrap signature">
+        <div class="reveal shot">
+          <div class="shot__label"><small>Maison Signature</small><span class="serif">Noir d'Emercia</span></div>
+        </div>
+        <div class="reveal">
+          <p class="eyebrow">The Signature</p>
+          <hr class="rule" />
+          <h2 class="lead-h2">Noir d'Emercia — the <em>house</em> scent.</h2>
+          <p class="measure" style="margin-top:1.6rem;">
+            Our defining eau de parfum: an amber-oud composition that opens bright, warms through
+            a floral heart, and settles into a base you'll still catch at midnight. Unisex by
+            design, personal by wear.
+          </p>
+          <dl class="notes">
+            <div class="note-row"><dt>Top</dt><dd>Bergamot · Pink Pepper · Saffron</dd></div>
+            <div class="note-row"><dt>Heart</dt><dd>Rose · Jasmine · Cedar</dd></div>
+            <div class="note-row"><dt>Base</dt><dd>Amber · Oud · White Musk</dd></div>
+          </dl>
+          <a class="btn btn--ghost" href="#enquire" style="margin-top:1.6rem;">Request a Sample</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== EXPERIENCE ===================== -->
+    <section class="band" id="services">
+      <div class="wrap">
+        <div class="reveal" style="max-width:60ch; margin-bottom:3rem;">
+          <p class="eyebrow">The Experience</p>
+          <hr class="rule" />
+          <h2 class="lead-h2">Beyond the <em>bottle</em>.</h2>
+        </div>
+        <div class="services">
+          <div class="service reveal"><h3>Scent Consultation</h3><p>Tell us your world and we'll guide you to your signature — in person or through a curated discovery set posted to your door.</p></div>
+          <div class="service reveal"><h3>Layering &amp; Wardrobe</h3><p>Learn to pair parfum, mist and deodorant so your scent lasts longer and becomes entirely your own.</p></div>
+          <div class="service reveal"><h3>Corporate &amp; Gifting</h3><p>Personalised gift sets and bulk editions for weddings, celebrations and considered corporate gifting.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== QUOTE ===================== -->
+    <section class="band band--panel">
+      <div class="wrap quote reveal">
+        <hr class="rule rule--center" />
+        <blockquote>“Three people asked what I was wearing before lunch. It lasts, and it feels like mine.”</blockquote>
+        <cite>— An Emercia Wearer</cite>
+      </div>
+    </section>
+
+    <!-- ===================== ENQUIRE ===================== -->
+    <section class="band" id="enquire">
+      <div class="wrap enquire">
+        <div class="reveal">
+          <p class="eyebrow">Enquire</p>
+          <hr class="rule" />
+          <h2 class="lead-h2">Find your <em>signature</em>.</h2>
+          <p class="measure" style="margin-top:1.6rem;">
+            Tell us who it's for and what you love to wear, and we'll recommend a fragrance or send
+            a discovery set. We reply personally within two working days.
+          </p>
+          <p class="measure" style="margin-top:1rem;">
+            <a href="mailto:hello@emerciadecor.com" style="color:var(--gold-bright);">hello@emerciadecor.com</a><br />
+            <a href="https://wa.me/910000000000" style="color:var(--gold-bright);">WhatsApp · +91 00000 00000</a>
+          </p>
+        </div>
+
+        <form class="form reveal" id="enquiry-form">
+          <div class="form__row">
+            <label>Name<input type="text" name="name" required placeholder="Your name" /></label>
+            <label>City<input type="text" name="city" placeholder="City" /></label>
+          </div>
+          <div class="form__row">
+            <label>Email<input type="email" name="email" required placeholder="you@email.com" /></label>
+            <label>Looking for
+              <select name="interest">
+                <option>For Her</option><option>For Him</option><option>Unisex</option>
+                <option>Deodorants &amp; Mists</option><option>A Gift Set</option>
+              </select>
+            </label>
+          </div>
+          <label>What do you love to wear?<textarea name="message" placeholder="Scents or notes you already enjoy…"></textarea></label>
+          <button class="btn btn--solid" type="submit" style="justify-content:center;">Send Enquiry</button>
+          <p id="form-note" style="font-size:0.8rem; color:var(--muted); margin:0; min-height:1.2rem;"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===================== FOOTER ===================== -->
+    <footer>
+      <div class="wrap">
+        <div class="foot">
+          <div>
+            <div class="foot__brand">Emercia<b> Decor</b></div>
+            <p style="margin-top:1rem; max-width:34ch;">A luxury perfume &amp; deodorant house for him and her. Rare notes, lasting wear, made to be yours.</p>
+          </div>
+          <div>
+            <h4>Explore</h4>
+            <a href="#house">The House</a><br /><a href="#collections">Fragrances</a><br /><a href="#signature">Signature</a><br /><a href="#services">The Experience</a>
+          </div>
+          <div>
+            <h4>Connect</h4>
+            <a href="mailto:hello@emerciadecor.com">hello@emerciadecor.com</a><br /><a href="https://wa.me/910000000000">WhatsApp</a><br /><a href="#top">Instagram</a><br /><a href="#enquire">Find Your Scent</a>
+          </div>
+        </div>
+        <div class="foot__legal">
+          <span>© 2026 Emercia Decor. All rights reserved.</span>
+          <span>For him &amp; her · Crafted in small batches.</span>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ===================== SEARCH OVERLAY ===================== -->
+    <div class="search" id="search" hidden>
+      <div class="search__backdrop" data-close></div>
+      <div class="search__panel" role="dialog" aria-modal="true" aria-label="Search fragrances">
+        <div class="search__field">
+          <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+          <input type="text" id="search-input" placeholder="Search fragrances, notes, deodorants…" autocomplete="off" spellcheck="false" />
+          <button class="search__close" type="button" data-close>Esc</button>
+        </div>
+        <ul class="search__results" id="search-results"></ul>
+        <div class="search__foot"><span>↑ ↓ navigate</span><span>Enter to open</span><span>Esc to close</span></div>
+      </div>
+    </div>
+
+    <script>
+      /* ---------- sticky nav ---------- */
+      const nav = document.getElementById("nav");
+      const onScroll = () => nav.classList.toggle("is-stuck", window.scrollY > 40);
+      onScroll();
+      window.addEventListener("scroll", onScroll, { passive: true });
+
+      /* ---------- scroll reveals ---------- */
+      const io = new IntersectionObserver(
+        (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); } }),
+        { threshold: 0.14 }
+      );
+      document.querySelectorAll(".reveal").forEach((el, i) => { el.style.transitionDelay = (Math.min(i % 3, 2) * 0.08) + "s"; io.observe(el); });
+
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const finePointer = window.matchMedia("(pointer: fine)").matches;
+
+      /* ---------- hero 3D bottle parallax ---------- */
+      const stage = document.getElementById("stage3d");
+      const bottle = document.getElementById("bottle3d");
+      if (stage && bottle && finePointer && !reduceMotion) {
+        stage.addEventListener("pointermove", (e) => {
+          const r = stage.getBoundingClientRect();
+          const px = (e.clientX - r.left) / r.width - 0.5;
+          const py = (e.clientY - r.top) / r.height - 0.5;
+          bottle.style.setProperty("--ry", (px * 46 - 20) + "deg");
+          bottle.style.setProperty("--rx", (4 - py * 30) + "deg");
+        });
+        stage.addEventListener("pointerleave", () => {
+          bottle.style.setProperty("--ry", "-20deg");
+          bottle.style.setProperty("--rx", "4deg");
+        });
+      }
+
+      /* ---------- 3D tilt on fragrance cards ---------- */
+      if (finePointer && !reduceMotion) {
+        document.querySelectorAll("#grid .card").forEach((card) => {
+          card.addEventListener("pointermove", (e) => {
+            const r = card.getBoundingClientRect();
+            const px = (e.clientX - r.left) / r.width;
+            const py = (e.clientY - r.top) / r.height;
+            card.style.transform = "translateY(-4px) rotateX(" + ((0.5 - py) * 9).toFixed(2) + "deg) rotateY(" + ((px - 0.5) * 11).toFixed(2) + "deg)";
+            card.style.setProperty("--gx", (px * 100).toFixed(1) + "%");
+            card.style.setProperty("--gy", (py * 100).toFixed(1) + "%");
+          });
+          card.addEventListener("pointerleave", () => { card.style.transform = ""; });
+        });
+      }
+
+      /* ---------- fragrance filters ---------- */
+      const cards = Array.from(document.querySelectorAll("#grid .card"));
+      const noResults = document.getElementById("no-results");
+      document.getElementById("filters").addEventListener("click", (e) => {
+        const chip = e.target.closest(".chip");
+        if (!chip) return;
+        document.querySelectorAll(".chip").forEach((c) => c.classList.remove("is-active"));
+        chip.classList.add("is-active");
+        const f = chip.dataset.filter;
+        let shown = 0;
+        cards.forEach((c) => {
+          const match = f === "all" || c.dataset.cat === f;
+          c.classList.toggle("is-hidden", !match);
+          if (match) shown++;
+        });
+        noResults.hidden = shown > 0;
+      });
+
+      /* ---------- search overlay ---------- */
+      const searchWrap = document.getElementById("search");
+      const searchInput = document.getElementById("search-input");
+      const searchResults = document.getElementById("search-results");
+      const index = cards.map((c) => ({
+        el: c,
+        name: c.dataset.name.replace(/&amp;/g, "&"),
+        cat: c.querySelector(".card__body small").textContent.trim(),
+        notes: c.dataset.notes,
+      }));
+      let cursor = 0, current = [];
+
+      function renderResults(q) {
+        const needle = q.toLowerCase().trim();
+        current = !needle ? index.slice() : index.filter((it) =>
+          (it.name + " " + it.cat + " " + it.notes).toLowerCase().includes(needle));
+        cursor = 0;
+        if (!current.length) { searchResults.innerHTML = '<li class="search__empty">No fragrances match “' + q + '”.</li>'; return; }
+        searchResults.innerHTML = current.map((it, n) =>
+          '<li class="search__result' + (n === 0 ? " is-cursor" : "") + '" data-n="' + n + '">' +
+          '<div><div class="r-name">' + it.name + '</div><div class="r-meta">' + it.cat + '</div></div>' +
+          '<div class="r-notes">' + it.notes + '</div></li>').join("");
+      }
+      function openSearch() { searchWrap.hidden = false; searchInput.value = ""; renderResults(""); setTimeout(() => searchInput.focus(), 30); }
+      function closeSearch() { searchWrap.hidden = true; }
+      function gotoResult(n) {
+        const it = current[n]; if (!it) return;
+        closeSearch();
+        it.el.classList.remove("is-hidden");
+        document.querySelectorAll(".chip").forEach((c) => c.classList.toggle("is-active", c.dataset.filter === "all"));
+        cards.forEach((c) => c.classList.remove("is-hidden"));
+        noResults.hidden = true;
+        it.el.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+        it.el.classList.remove("is-flash"); void it.el.offsetWidth; it.el.classList.add("is-flash");
+      }
+      function moveCursor(step) {
+        const items = searchResults.querySelectorAll(".search__result");
+        if (!items.length) return;
+        cursor = (cursor + step + items.length) % items.length;
+        items.forEach((el, n) => el.classList.toggle("is-cursor", n === cursor));
+        items[cursor].scrollIntoView({ block: "nearest" });
+      }
+
+      document.getElementById("search-open").addEventListener("click", openSearch);
+      searchInput.addEventListener("input", (e) => renderResults(e.target.value));
+      searchWrap.addEventListener("click", (e) => {
+        if (e.target.closest("[data-close]")) { closeSearch(); return; }
+        const row = e.target.closest(".search__result");
+        if (row) gotoResult(Number(row.dataset.n));
+      });
+      searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowDown") { e.preventDefault(); moveCursor(1); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); moveCursor(-1); }
+        else if (e.key === "Enter") { e.preventDefault(); gotoResult(cursor); }
+        else if (e.key === "Escape") { closeSearch(); }
+      });
+      document.addEventListener("keydown", (e) => {
+        if (searchWrap.hidden && (e.key === "/" || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k"))) {
+          const t = e.target;
+          if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
+          e.preventDefault(); openSearch();
+        } else if (!searchWrap.hidden && e.key === "Escape") { closeSearch(); }
+      });
+
+      /* ---------- enquiry form (mailto; swap for a real endpoint later) ---------- */
+      const form = document.getElementById("enquiry-form");
+      const note = document.getElementById("form-note");
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const d = new FormData(form);
+        const subject = encodeURIComponent("Emercia Decor enquiry — " + (d.get("interest") || ""));
+        const body = encodeURIComponent(
+          "Name: " + (d.get("name") || "") + "\nCity: " + (d.get("city") || "") +
+          "\nEmail: " + (d.get("email") || "") + "\nLooking for: " + (d.get("interest") || "") +
+          "\n\n" + (d.get("message") || ""));
+        note.textContent = "Opening your email app…";
+        window.location.href = "mailto:hello@emerciadecor.com?subject=" + subject + "&body=" + body;
+      });
+    </script>
+  </body>
+</html>
