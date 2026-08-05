@@ -3,6 +3,29 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FILTERS, type Category, type Fragrance } from "@/lib/products";
 
+/* Product photo that fades in when present and silently yields to the
+   styled gradient placeholder if the file is missing. */
+function CardImage({ src, alt }: { src?: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  if (!src || failed) return null;
+  return (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        className="card__img"
+        src={src}
+        alt={alt}
+        loading="lazy"
+        style={{ opacity: loaded ? 1 : 0 }}
+        onLoad={() => setLoaded(true)}
+        onError={() => setFailed(true)}
+      />
+      {loaded && <div className="card__scrim" />}
+    </>
+  );
+}
+
 export default function Fragrances({ products }: { products: Fragrance[] }) {
   const [filter, setFilter] = useState<"all" | Category>("all");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -126,6 +149,7 @@ export default function Fragrances({ products }: { products: Fragrance[] }) {
               onPointerMove={tilt}
               onPointerLeave={untilt}
             >
+              <CardImage src={p.image} alt={p.name} />
               <div className="card__glare" />
               {p.tag && <span className="card__tag">{p.tag}</span>}
               <span className="card__index">{p.index}</span>
