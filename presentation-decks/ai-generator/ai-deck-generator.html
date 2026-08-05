@@ -561,6 +561,11 @@
          ========================================================= */
       .gen { display: grid; gap: 1.1rem; max-width: 640px; }
       .gen__form { display: grid; gap: 0.9rem; }
+      .gen__controls { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+      @media (max-width: 480px) { .gen__controls { grid-template-columns: 1fr; } }
+      select.select { cursor: pointer; appearance: none; padding-right: 2.2rem;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%239aa7c7' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 0.9rem center; }
       .field { display: grid; gap: 0.4rem; }
       .field > label {
         font-size: 0.78rem; font-weight: 700;
@@ -699,6 +704,26 @@
               <label for="topic-input">Your topic</label>
               <textarea class="textarea" id="topic-input" rows="2"
                 placeholder="e.g. Sustainable packaging for small businesses"></textarea>
+            </div>
+
+            <div class="gen__controls">
+              <div class="field">
+                <label for="length-input">Length</label>
+                <select class="input select" id="length-input">
+                  <option value="short">Short · ~6 slides</option>
+                  <option value="standard" selected>Standard · ~9 slides</option>
+                  <option value="detailed">Detailed · ~13 slides</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="tone-input">Tone</label>
+                <select class="input select" id="tone-input">
+                  <option value="professional" selected>Professional</option>
+                  <option value="conversational">Conversational</option>
+                  <option value="bold">Bold &amp; punchy</option>
+                  <option value="academic">Academic</option>
+                </select>
+              </div>
             </div>
 
             <button class="gen__btn" id="gen-btn" type="submit">
@@ -1180,20 +1205,28 @@
       const topicInput = document.getElementById("topic-input");
       const keyInput = document.getElementById("key-input");
       const modelInput = document.getElementById("model-input");
+      const lengthInput = document.getElementById("length-input");
+      const toneInput = document.getElementById("tone-input");
       const genBtn = document.getElementById("gen-btn");
       const genBtnLabel = document.getElementById("gen-btn-label");
       const genStatus = document.getElementById("gen-status");
       const genSettings = document.getElementById("gen-settings");
       const brandText = document.getElementById("brand-text");
 
-      /* restore saved key + model */
-      try {
-        const savedKey = localStorage.getItem(KEY_STORE);
-        if (savedKey) keyInput.value = savedKey;
-      } catch (e) { /* private mode */ }
-      try {
-        modelInput.value = localStorage.getItem(MODEL_STORE) || DEFAULT_MODEL;
-      } catch (e) { modelInput.value = DEFAULT_MODEL; }
+      let hasGenerated = false;
+
+      function readStore(k, fallback) {
+        try { return localStorage.getItem(k) || fallback; } catch (e) { return fallback; }
+      }
+      function writeStore(k, v) {
+        try { localStorage.setItem(k, v); } catch (e) { /* private mode */ }
+      }
+
+      /* restore saved key, model and prompt controls */
+      keyInput.value = readStore(KEY_STORE, "");
+      modelInput.value = readStore(MODEL_STORE, DEFAULT_MODEL);
+      lengthInput.value = readStore("deck-gemini-length", "standard");
+      toneInput.value = readStore("deck-gemini-tone", "professional");
 
       function setStatus(msg, kind) {
         genStatus.textContent = msg || "";
@@ -1204,7 +1237,7 @@
       function setBusy(busy) {
         genBtn.disabled = busy;
         genBtn.setAttribute("data-busy", busy ? "1" : "0");
-        genBtnLabel.textContent = busy ? "Generating…" : "Generate deck";
+        genBtnLabel.textContent = busy ? "Generating…" : (hasGenerated ? "Regenerate deck" : "Generate deck");
       }
 
       /* The schema Gemini must return. One uniform slide shape with a
@@ -1264,10 +1297,23 @@
         required: ["title", "slides"],
       };
 
-      function buildPrompt(topic) {
+      const LENGTHS = {
+        short: "Return 5 to 6 slides.",
+        standard: "Return 8 to 11 slides.",
+        detailed: "Return 12 to 14 slides.",
+      };
+      const TONES = {
+        professional: "Use a clear, professional business tone.",
+        conversational: "Use a warm, conversational tone that speaks directly to the reader.",
+        bold: "Use a bold, high-energy tone with short, punchy lines.",
+        academic: "Use a precise, measured, academic tone.",
+      };
+
+      function buildPrompt(topic, opts) {
         return [
           "You are a presentation writer. Create a concise, well-structured slide deck",
-          "about the following topic. Return 8 to 11 slides.",
+          "about the following topic. " + (LENGTHS[opts.length] || LENGTHS.standard),
+          (TONES[opts.tone] || TONES.professional),
           "",
           "Topic: " + topic,
           "",
@@ -1286,11 +1332,11 @@
         ].join("\n");
       }
 
-      async function callGemini(topic, key, model) {
+      async function callGemini(topic, key, model, opts) {
         const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
           encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(key);
         const body = {
-          contents: [{ role: "user", parts: [{ text: buildPrompt(topic) }] }],
+          contents: [{ role: "user", parts: [{ text: buildPrompt(topic, opts) }] }],
           generationConfig: {
             temperature: 0.7,
             responseMimeType: "application/json",
@@ -1435,20 +1481,22 @@
         const key = keyInput.value.trim();
         if (!key) { setStatus("Paste your Gemini API key under API settings.", "error"); genSettings.open = true; keyInput.focus(); return; }
         const model = modelInput.value.trim() || DEFAULT_MODEL;
+        const opts = { length: lengthInput.value, tone: toneInput.value };
 
-        try {
-          localStorage.setItem(KEY_STORE, key);
-          localStorage.setItem(MODEL_STORE, model);
-        } catch (err) { /* private mode — ignore */ }
+        writeStore(KEY_STORE, key);
+        writeStore(MODEL_STORE, model);
+        writeStore("deck-gemini-length", opts.length);
+        writeStore("deck-gemini-tone", opts.tone);
 
         setBusy(true);
-        setStatus("Contacting Gemini and writing your slides…", "working");
+        setStatus(hasGenerated ? "Regenerating your slides…" : "Contacting Gemini and writing your slides…", "working");
         try {
-          const deck = await callGemini(topic, key, model);
+          const deck = await callGemini(topic, key, model, opts);
           renderDeck(deck);
+          hasGenerated = true;
           reindex();
           visited = new Set([0]);
-          setStatus("Done — created " + deck.slides.length + " slides.", "done");
+          setStatus("Done — created " + deck.slides.length + " slides. Press Home or ← any time to return here and regenerate.", "done");
           go(1);
           toast("Generated " + deck.slides.length + " slides");
         } catch (err) {
