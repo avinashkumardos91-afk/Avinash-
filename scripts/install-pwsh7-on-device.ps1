@@ -21,7 +21,13 @@ param(
 
     # Path on the device. U:\ is the IoT Core data partition; on a normal
     # Windows ARM install this is C:\Users\Administrator\Downloads.
-    [string] $DownloadFolder = 'U:\Users\Administrator\Downloads'
+    [string] $DownloadFolder = 'U:\Users\Administrator\Downloads',
+
+    # Saved credential, so the run needs no interactive prompt. Create it once:
+    #   Get-Credential Administrator | Export-CliXml "$env:USERPROFILE\device-cred.xml"
+    # The file is encrypted by Windows DPAPI - only your account on this
+    # machine can read it back.
+    [string] $CredentialPath
 )
 
 $ErrorActionPreference = 'Stop'
@@ -37,8 +43,19 @@ if ($current -split ',' -notcontains $DeviceIp) {
     Set-Item WSMan:\localhost\Client\TrustedHosts -Value $DeviceIp -Concatenate -Force
 }
 
+if ($CredentialPath) {
+    if (-not (Test-Path $CredentialPath)) { throw "Credential file not found: $CredentialPath" }
+    $cred = Import-CliXml $CredentialPath
+} else {
+    $cred = Get-Credential -UserName Administrator -Message "Password for Administrator on $DeviceIp"
+}
+
+if (-not (Test-Connection $DeviceIp -TcpPort 5985 -TimeoutSeconds 5)) {
+    throw "$DeviceIp is not listening on 5985. Check the device is powered on, joined to this network, and has WinRM enabled (run 'winrm quickconfig' on the device once)."
+}
+
 Write-Host "Connecting to $DeviceIp..." -ForegroundColor Cyan
-$S = New-PSSession -ComputerName $DeviceIp -Credential Administrator
+$S = New-PSSession -ComputerName $DeviceIp -Credential $cred
 
 try {
     Write-Host "Copying $zipName (105 MB) to $DownloadFolder..." -ForegroundColor Cyan
