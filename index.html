@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Presentation Decks</title>
+    <meta name="description" content="Browser-based slide decks with dark/light theme, search and a progress indicator." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b1020;
+        --surface: rgba(255, 255, 255, 0.045);
+        --surface-strong: rgba(255, 255, 255, 0.08);
+        --border: rgba(255, 255, 255, 0.1);
+        --border-strong: rgba(255, 255, 255, 0.18);
+        --text: #eef2ff;
+        --text-dim: #9aa7c7;
+        --accent: #6ea8fe;
+        --accent-2: #b388ff;
+        --accent-ink: #0b1020;
+        color-scheme: dark;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f6f7fb;
+          --surface: rgba(15, 23, 42, 0.035);
+          --surface-strong: rgba(15, 23, 42, 0.065);
+          --border: rgba(15, 23, 42, 0.1);
+          --border-strong: rgba(15, 23, 42, 0.2);
+          --text: #131a2b;
+          --text-dim: #55617d;
+          --accent: #2f6bff;
+          --accent-2: #7b3fe4;
+          --accent-ink: #ffffff;
+          color-scheme: light;
+        }
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: grid;
+        place-items: center;
+        padding: clamp(1.5rem, 6vw, 4rem) 1.25rem;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: -20%;
+        background:
+          radial-gradient(45vw 45vw at 12% 8%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 60%),
+          radial-gradient(40vw 40vw at 88% 92%, color-mix(in srgb, var(--accent-2) 16%, transparent), transparent 60%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      main { position: relative; z-index: 1; width: min(760px, 100%); }
+
+      h1, h2, h3 { font-family: "Sora", "Inter", sans-serif; margin: 0; }
+
+      .eyebrow {
+        margin: 0 0 0.6rem;
+        font-size: 0.72rem; font-weight: 700;
+        letter-spacing: 0.16em; text-transform: uppercase;
+        color: var(--accent);
+      }
+      h1 { font-size: clamp(2rem, 5.5vw, 3.2rem); line-height: 1.05; letter-spacing: -0.03em; font-weight: 800; }
+      .grad {
+        background: linear-gradient(100deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+      .lede {
+        margin: 0.9rem 0 0;
+        max-width: 58ch;
+        font-size: 1.02rem; line-height: 1.65;
+        color: var(--text-dim);
+      }
+
+      .features {
+        display: flex; flex-wrap: wrap; gap: 0.5rem;
+        margin: 1.4rem 0 2.2rem;
+      }
+      .chip {
+        padding: 0.34rem 0.8rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        font-size: 0.82rem; color: var(--text-dim);
+      }
+
+      .decks { display: grid; gap: 0.7rem; }
+
+      a.deck {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.05rem 1.2rem;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: inherit;
+        text-decoration: none;
+        transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+      }
+      a.deck:hover {
+        transform: translateY(-2px);
+        border-color: var(--border-strong);
+        background: var(--surface-strong);
+      }
+      a.deck--primary {
+        border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+        background: color-mix(in srgb, var(--accent) 10%, transparent);
+      }
+      .deck__mark {
+        flex: none;
+        display: grid; place-items: center;
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        font-family: "Sora", sans-serif; font-weight: 800; font-size: 0.8rem;
+        color: var(--accent-ink);
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      }
+      .deck__body { min-width: 0; flex: 1; }
+      .deck__title { font-size: 1rem; font-weight: 700; }
+      .deck__meta { margin: 0.2rem 0 0; font-size: 0.85rem; line-height: 1.5; color: var(--text-dim); }
+      .deck__go { flex: none; color: var(--text-dim); font-size: 1.1rem; }
+
+      footer {
+        margin-top: 2.4rem;
+        padding-top: 1.2rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.84rem; line-height: 1.7;
+        color: var(--text-dim);
+      }
+      footer a { color: var(--accent); text-decoration: none; }
+      footer a:hover { text-decoration: underline; }
+      kbd {
+        font-family: inherit;
+        font-size: 0.74rem; font-weight: 600;
+        padding: 0.12em 0.42em;
+        border-radius: 6px;
+        border: 1px solid var(--border-strong);
+        background: var(--surface-strong);
+        color: var(--text-dim);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Slide decks</p>
+      <h1>Presentation <span class="grad">Decks</span></h1>
+      <p class="lede">
+        Browser-based decks built with plain HTML, CSS and vanilla JavaScript.
+        Single self-contained files — no build step, no dependencies. Open one and present.
+      </p>
+
+      <div class="features">
+        <span class="chip">Dark / light theme</span>
+        <span class="chip">Search across slides</span>
+        <span class="chip">Progress indicator</span>
+        <span class="chip">Keyboard &amp; swipe nav</span>
+      </div>
+
+      <div class="decks">
+        <a class="deck deck--primary" href="presentation-decks/digital-marketing/digital-marketing-deck-v2.html">
+          <span class="deck__mark">DM</span>
+          <span class="deck__body">
+            <span class="deck__title">Digital Marketing Basics</span>
+            <p class="deck__meta">15 slides · channels, funnel, metrics and strategy — with all three features</p>
+          </span>
+          <span class="deck__go">→</span>
+        </a>
+
+        <a class="deck" href="presentation-decks/digital-marketing/digital-marketing-deck.html">
+          <span class="deck__mark">V1</span>
+          <span class="deck__body">
+            <span class="deck__title">Digital Marketing Basics — base version</span>
+            <p class="deck__meta">The same 15 slides before the enhancements, kept for comparison</p>
+          </span>
+          <span class="deck__go">→</span>
+        </a>
+
+        <a class="deck" href="presentation-decks/template/deck-template.html">
+          <span class="deck__mark">NEW</span>
+          <span class="deck__body">
+            <span class="deck__title">Blank deck template</span>
+            <p class="deck__meta">Copy this to start a new deck — all three features, placeholder slides</p>
+          </span>
+          <span class="deck__go">→</span>
+        </a>
+      </div>
+
+      <footer>
+        Inside a deck: <kbd>→</kbd> next · <kbd>←</kbd> back · <kbd>/</kbd> search ·
+        <kbd>T</kbd> theme · <kbd>F11</kbd> fullscreen.<br />
+        Source on <a href="https://github.com/avinashkumardos91-afk/Avinash-">GitHub</a>.
+      </footer>
+    </main>
+  </body>
+</html>
