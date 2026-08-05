@@ -108,3 +108,4 @@ prints better.
 | --- | --- | --- |
 | [Digital Marketing Basics](digital-marketing/) | 15 | Channels, funnel, metrics and strategy. Kept in two versions so the v1 → v2 diff shows exactly what the three features added. |
 | [Riwaazbox Multi-Platform Playbook](multi-platform/) | 16 | Instagram, YouTube/Shorts, LinkedIn and WhatsApp/Web — one job per platform, one production cycle feeding all four. Gold-and-rose palette. |
+| [AI Deck Generator](ai-generator/) | 1 + AI | Slide 1 takes a topic and a Gemini API key; on submit it calls Gemini (`gemini-3.6-flash`) and writes the rest of the deck. The key stays in the browser only. |
