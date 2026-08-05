@@ -3,6 +3,7 @@ import HeroBottle from "@/components/HeroBottle";
 import Fragrances from "@/components/Fragrances";
 import EnquireForm from "@/components/EnquireForm";
 import RevealObserver from "@/components/RevealObserver";
+import Shot from "@/components/Shot";
 import { getFragrances } from "@/lib/medusa";
 
 export default async function Home() {
@@ -70,9 +71,7 @@ export default async function Home() {
               <div className="stat"><b>0%</b><span>Cruelty · Ever</span></div>
             </div>
           </div>
-          <div className="reveal shot min-h-[440px]">
-            <div className="shot__label"><small>The House</small><span className="serif">Emercia Signature</span></div>
-          </div>
+          <Shot className="reveal min-h-[440px]" src="/products/house.webp" label="The House" title="Emercia Signature" />
         </div>
       </section>
 
@@ -82,9 +81,7 @@ export default async function Home() {
       {/* ===================== SIGNATURE + NOTES ===================== */}
       <section id="signature" className="py-[clamp(5rem,12vh,9rem)]" style={{ background: "linear-gradient(180deg, var(--noir), var(--noir-2))" }}>
         <div className="mx-auto grid w-[min(1180px,100%-3rem)] items-center gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-16">
-          <div className="reveal shot min-h-[480px]">
-            <div className="shot__label"><small>Maison Signature</small><span className="serif">Noir d&apos;Emercia</span></div>
-          </div>
+          <Shot className="reveal min-h-[480px]" src="/products/signature.webp" label="Maison Signature" title="Noir d'Emercia" />
           <div className="reveal">
             <p className="eyebrow">The Signature</p>
             <hr className="rule" />

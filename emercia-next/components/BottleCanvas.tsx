@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
 import {
   OrbitControls,
@@ -35,47 +35,57 @@ function useLabelTexture() {
 
 function Bottle() {
   const label = useLabelTexture();
-  const glass = useRef<THREE.Mesh>(null);
 
   return (
-    <group scale={1.15}>
-      {/* glass body */}
-      <RoundedBox ref={glass} args={[1.55, 2.2, 0.72]} radius={0.2} smoothness={8} castShadow>
+    <group scale={1.12} position={[0, -0.1, 0]}>
+      {/* glass body — sleeker, taller flacon with crisper edges */}
+      <RoundedBox args={[1.4, 2.55, 0.62]} radius={0.12} smoothness={10} castShadow>
         <meshPhysicalMaterial
           transmission={1}
-          thickness={1.4}
-          roughness={0.06}
-          ior={1.46}
+          thickness={1.6}
+          roughness={0.035}
+          ior={1.5}
           clearcoat={1}
-          clearcoatRoughness={0.12}
-          color="#f2ecdf"
-          attenuationColor="#c9a54e"
-          attenuationDistance={2.4}
+          clearcoatRoughness={0.08}
+          color="#f4eee2"
+          attenuationColor="#caa24d"
+          attenuationDistance={3.2}
+          specularIntensity={1}
           transparent
         />
       </RoundedBox>
 
-      {/* amber juice, sitting in the lower two-thirds */}
-      <RoundedBox args={[1.4, 1.35, 0.58]} radius={0.16} smoothness={6} position={[0, -0.4, 0]}>
-        <meshPhysicalMaterial color="#b5763a" transmission={0.55} roughness={0.28} ior={1.36} thickness={2} attenuationColor="#7a3f18" attenuationDistance={0.8} transparent />
+      {/* amber juice filling the lower ~60% */}
+      <RoundedBox args={[1.26, 1.42, 0.5]} radius={0.1} smoothness={8} position={[0, -0.5, 0]}>
+        <meshPhysicalMaterial color="#a85f2b" transmission={0.5} roughness={0.22} ior={1.38} thickness={2.2} attenuationColor="#6b3512" attenuationDistance={0.7} transparent />
       </RoundedBox>
 
-      {/* front label */}
-      <mesh position={[0, 0.15, 0.372]}>
-        <planeGeometry args={[1.05, 1.55]} />
-        <meshBasicMaterial map={label} transparent opacity={0.92} />
+      {/* etched front label */}
+      <mesh position={[0, 0.12, 0.318]}>
+        <planeGeometry args={[0.98, 1.5]} />
+        <meshBasicMaterial map={label} transparent opacity={0.9} />
+      </mesh>
+
+      {/* glass neck */}
+      <mesh position={[0, 1.42, 0]}>
+        <cylinderGeometry args={[0.24, 0.28, 0.2, 40]} />
+        <meshPhysicalMaterial transmission={1} thickness={0.8} roughness={0.05} ior={1.5} color="#f4eee2" transparent />
       </mesh>
 
       {/* gold collar */}
-      <mesh position={[0, 1.24, 0]} castShadow>
-        <cylinderGeometry args={[0.4, 0.44, 0.2, 48]} />
-        <meshStandardMaterial color="#e6cd8b" metalness={1} roughness={0.22} />
+      <mesh position={[0, 1.6, 0]} castShadow>
+        <cylinderGeometry args={[0.34, 0.38, 0.16, 56]} />
+        <meshStandardMaterial color="#e6cd8b" metalness={1} roughness={0.18} envMapIntensity={1.4} />
       </mesh>
 
-      {/* cap */}
-      <RoundedBox args={[0.74, 0.66, 0.56]} radius={0.1} smoothness={5} position={[0, 1.66, 0]} castShadow>
-        <meshStandardMaterial color="#17120f" metalness={0.7} roughness={0.35} />
+      {/* cap — matte black with a gold rim */}
+      <RoundedBox args={[0.66, 0.7, 0.5]} radius={0.08} smoothness={6} position={[0, 2.02, 0]} castShadow>
+        <meshStandardMaterial color="#141010" metalness={0.55} roughness={0.42} />
       </RoundedBox>
+      <mesh position={[0, 1.69, 0]}>
+        <cylinderGeometry args={[0.3, 0.3, 0.05, 56]} />
+        <meshStandardMaterial color="#e6cd8b" metalness={1} roughness={0.2} />
+      </mesh>
     </group>
   );
 }
@@ -88,15 +98,17 @@ export default function BottleCanvas() {
       gl={{ antialias: true, alpha: true, preserveDrawingBuffer: false }}
       style={{ width: "100%", height: "100%" }}
     >
-      <ambientLight intensity={0.35} />
-      <directionalLight position={[4, 8, 5]} intensity={2.2} castShadow />
-      <directionalLight position={[-6, 2, -3]} intensity={1.3} color="#e6cd8b" />
+      <ambientLight intensity={0.3} />
+      <directionalLight position={[4, 8, 5]} intensity={2.4} color="#fff4e0" castShadow />
+      <directionalLight position={[-6, 2, -3]} intensity={1.4} color="#e6cd8b" />
+      <pointLight position={[0, -1, 4]} intensity={0.5} color="#b8798a" />
 
       {/* in-scene environment (no external HDR fetch) for glass + metal reflections */}
-      <Environment resolution={256}>
-        <Lightformer intensity={2.2} position={[0, 3, 3]} scale={[6, 6, 1]} color="#ffffff" />
-        <Lightformer intensity={1.4} position={[-4, 1, -2]} scale={[5, 5, 1]} color="#e6cd8b" />
-        <Lightformer intensity={1.1} position={[4, -1, 2]} scale={[5, 5, 1]} color="#b8798a" />
+      <Environment resolution={512}>
+        <Lightformer intensity={2.6} position={[0, 3.5, 3]} scale={[7, 7, 1]} color="#ffffff" />
+        <Lightformer intensity={1.6} position={[-4, 1, -2]} scale={[5, 6, 1]} color="#e6cd8b" />
+        <Lightformer intensity={1.2} position={[4, -1, 2]} scale={[5, 5, 1]} color="#b8798a" />
+        <Lightformer intensity={1} position={[0, -3, -3]} scale={[6, 3, 1]} color="#caa24d" />
       </Environment>
 
       <Float speed={1.4} rotationIntensity={0} floatIntensity={0.5} floatingRange={[-0.08, 0.12]}>

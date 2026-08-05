@@ -77,10 +77,12 @@ I can build the player (done), but the **frames themselves are yours to
 generate** — that needs AI-video or a camera, not code:
 
 1. Generate a flawless 360° / exploded-view clip:
-   - **Google Veo / Whisk** or **Midjourney** video, prompt e.g.
-     *“Slow 360° orbital camera around a luxury amber-glass perfume bottle,
-     gold cap, macro detail, seamless loop, clean black studio background,
-     dramatic studio lighting, 60fps cinematic.”*
+   - **Google Veo / Whisk** or **Midjourney** video. Recommended prompt:
+     > *Cinematic commercial shoot of a luxury Emercia Decor perfume bottle,
+     > slow-motion 360-degree orbital camera glide, macro close-up revealing
+     > intricate texture details, hyper-realistic, dramatic studio lighting,
+     > soft moving shadows, clean dark minimalist background, 8k resolution,
+     > photorealistic, 60fps --ar 16:9*
    - or shoot a real **turntable** (or use **Sirv / Webrotate 360**).
 2. Extract every frame to stills (e.g. **EZGif → Video to Frames**), export
    **WEBP** (smaller) or JPG.
