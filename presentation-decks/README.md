@@ -10,10 +10,13 @@ presentation-decks/
 ├─ open-deck.bat            double-click to pick and open a deck
 ├─ template/
 │   └─ deck-template.html   blank deck — copy this to start a new one
-└─ digital-marketing/
-    ├─ digital-marketing-deck.html      v1 · base deck
-    ├─ digital-marketing-deck-v2.html   v2 · with the three features
-    └─ README.md                        write-up of the enhancements
+├─ digital-marketing/
+│   ├─ digital-marketing-deck.html      v1 · base deck
+│   ├─ digital-marketing-deck-v2.html   v2 · with the three features
+│   └─ README.md                        write-up of the enhancements
+└─ multi-platform/
+    ├─ riwaazbox-multi-platform-deck.html   Riwaazbox across four platforms
+    └─ README.md                            what's in the deck
 ```
 
 ## Every deck has three built-in features
@@ -104,3 +107,4 @@ prints better.
 | Deck | Slides | Notes |
 | --- | --- | --- |
 | [Digital Marketing Basics](digital-marketing/) | 15 | Channels, funnel, metrics and strategy. Kept in two versions so the v1 → v2 diff shows exactly what the three features added. |
+| [Riwaazbox Multi-Platform Playbook](multi-platform/) | 16 | Instagram, YouTube/Shorts, LinkedIn and WhatsApp/Web — one job per platform, one production cycle feeding all four. Gold-and-rose palette. |
