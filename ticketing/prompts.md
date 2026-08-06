@@ -1,6 +1,10 @@
-# Prompts log — Ticketing System ticketing system
+# Prompts log — Ticketing System
 
-Every prompt sent to Claude Code for this assignment, verbatim, in order.
+Every prompt sent to Claude Code for this assignment, in order.
+
+> Note: the original prompts named a specific brand. That brand name has been
+> redacted to "Ticketing System" throughout, at the requester's instruction, for
+> privacy. Everything else is verbatim.
 
 ---
 
