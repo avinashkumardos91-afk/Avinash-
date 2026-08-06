@@ -55,3 +55,21 @@ Every prompt sent to Claude Code for this assignment, in order.
 ### Prompt 3 — brand clarification
 
 > this is the different brand this is ticketing platform for solving queries and problems for bugs and many more not emercia
+
+---
+
+### Prompt 4 — remove the brand name (privacy)
+
+> remove [brand] name beacuse its privacy lets restart
+
+---
+
+### Prompt 5 — international clients
+
+> where we can solve the problems of international clients
+
+---
+
+### Prompt 6 — approval to add it
+
+> ok do it as you want full approval from my side

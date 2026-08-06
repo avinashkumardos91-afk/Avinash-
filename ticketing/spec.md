@@ -78,14 +78,25 @@ The build is accepted when **all** of the following are true and demonstrable.
 ### Finding things
 14. Tickets can be **searched** by text (matches ID, title, description, requester,
     owner).
-15. Tickets can be **filtered** by status, priority, category, and owner, and filters
-    combine with search.
+15. Tickets can be **filtered** by status, priority, category, owner, **region** and
+    **language**, and filters combine with search.
 16. The resolver view groups tickets by status as a **board** (one column per
     lifecycle stage) with per-column counts.
 
+### International clients
+17. A ticket records the client's **region** and **language**. Regions are:
+    North America, Latin America, Europe, Middle East & Africa, South Asia,
+    Asia-Pacific.
+18. Each region carries a representative **timezone**. The ticket detail shows the
+    **client's current local time** and whether it is inside business hours
+    (09:00–18:00 local), and shows when the ticket was **raised in the client's
+    timezone** — so an agent in any timezone can judge urgency and reachability.
+19. The board can be filtered to a single region and/or language (e.g. "all open
+    Europe / German tickets").
+
 ### Persistence
-17. All tickets and their activity **persist across a page refresh** (localStorage).
-18. On first ever load the app **seeds** a few example tickets so the board is not
+20. All tickets and their activity **persist across a page refresh** (localStorage).
+21. On first ever load the app **seeds** a few example tickets so the board is not
     empty; thereafter it uses saved data.
 
 ---

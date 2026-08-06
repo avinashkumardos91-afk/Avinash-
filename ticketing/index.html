@@ -261,6 +261,8 @@
             <select id="f-priority"><option value="">All priorities</option></select>
             <select id="f-category"><option value="">All categories</option></select>
             <select id="f-owner"><option value="">All owners</option></select>
+            <select id="f-region"><option value="">All regions</option></select>
+            <select id="f-language"><option value="">All languages</option></select>
             <button class="btn-ghost" id="clear-filters">Clear</button>
           </div>
           <div class="board" id="board"></div>
@@ -280,6 +282,10 @@
                 <div class="field two">
                   <div><label for="t-name">Your name *</label><input id="t-name" placeholder="Who is reporting" /></div>
                   <div><label for="t-cat">Category</label><select id="t-cat"></select></div>
+                </div>
+                <div class="field two">
+                  <div><label for="t-region">Client region</label><select id="t-region"></select></div>
+                  <div><label for="t-lang">Language</label><select id="t-lang"></select></div>
                 </div>
                 <div class="field">
                   <label for="t-pri">Priority</label>
@@ -324,13 +330,25 @@
       const STATUSES = ["Raised", "Picked up", "In progress", "Resolved", "Closed"];
       const PRIORITIES = ["Urgent", "High", "Normal", "Low"];
       const CATEGORIES = ["Bug", "Feature request", "Account / Access", "Billing", "How-to / Query", "Other"];
+      // International clients: region carries a representative IANA timezone so an
+      // agent anywhere sees each client's local time and business hours.
+      const REGIONS = [
+        { name: "North America", tz: "America/New_York" },
+        { name: "Latin America", tz: "America/Sao_Paulo" },
+        { name: "Europe", tz: "Europe/Berlin" },
+        { name: "Middle East & Africa", tz: "Asia/Dubai" },
+        { name: "South Asia", tz: "Asia/Kolkata" },
+        { name: "Asia-Pacific", tz: "Asia/Singapore" },
+      ];
+      const REGION_TZ = Object.fromEntries(REGIONS.map((r) => [r.name, r.tz]));
+      const LANGUAGES = ["English", "Spanish", "Portuguese", "French", "German", "Arabic", "Hindi", "Mandarin", "Japanese"];
       const PRI_COLOR = { Urgent: "var(--urgent)", High: "var(--high)", Normal: "var(--normal)", Low: "var(--low)" };
       const STATUS_COLOR = { "Raised": "#7f89a8", "Picked up": "#6ea8fe", "In progress": "#8b7bff", "Resolved": "#3fe0a0", "Closed": "#4a5270" };
       const KEY = "ticketing.tickets.v1", SEQ = "ticketing.seq.v1", AGENT = "ticketing.agent.v1";
 
       // ---------- state ----------
       let tickets = [];
-      let filters = { status: "", priority: "", category: "", owner: "", q: "" };
+      let filters = { status: "", priority: "", category: "", owner: "", region: "", language: "", q: "" };
       let mode = "resolve";
 
       // ---------- storage ----------
@@ -359,6 +377,14 @@
         return Math.floor(day / 7) + "w " + (day % 7) + "d";
       }
       function fmt(iso) { return new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); }
+      function fmtTz(iso, tz) { try { return new Date(iso).toLocaleString(undefined, { timeZone: tz, month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); } catch (e) { return fmt(iso); } }
+      function clientNow(tz) {
+        try {
+          const s = new Date().toLocaleTimeString("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false });
+          const h = parseInt(s.slice(0, 2), 10);
+          return { time: s, business: h >= 9 && h < 18 };
+        } catch (e) { return null; }
+      }
       function isOpen(t) { return t.status !== "Closed"; }
       function agentName() { return ($("#agent").value || "").trim(); }
 
@@ -372,19 +398,20 @@
         const hoursAgo = (h) => new Date(Date.now() - h * 36e5).toISOString();
         const mk = (id, over) => Object.assign({
           id, title: "", desc: "", raiser: "", category: "Bug", priority: "Normal",
+          region: "Europe", language: "English",
           status: "Raised", owner: null, createdAt: hoursAgo(1), updatedAt: hoursAgo(1),
           activity: [{ at: hoursAgo(1), text: "Ticket raised" }],
         }, over);
         tickets = [
-          mk("TKT-1042", { title: "Login page throws 500 after SSO redirect", desc: "Users with @acme.test accounts hit a 500 right after the SSO callback. Started this morning.", raiser: "Priya Menon", category: "Bug", priority: "Urgent", status: "In progress", owner: "Arjun R.", createdAt: hoursAgo(6), updatedAt: hoursAgo(1),
+          mk("TKT-1042", { title: "Login page throws 500 after SSO redirect", desc: "Users with @acme.test accounts hit a 500 right after the SSO callback. Started this morning.", raiser: "Priya Menon", category: "Bug", region: "North America", language: "English", priority: "Urgent", status: "In progress", owner: "Arjun R.", createdAt: hoursAgo(6), updatedAt: hoursAgo(1),
             activity: [{ at: hoursAgo(1), text: "Status → In progress" }, { at: hoursAgo(3), text: "Picked up by Arjun R." }, { at: hoursAgo(6), text: "Ticket raised" }] }),
-          mk("TKT-1041", { title: "Export to CSV missing the last row", desc: "The CSV export drops the final record in tables longer than one page.", raiser: "Sam Okonkwo", category: "Bug", priority: "High", status: "Picked up", owner: "Meera K.", createdAt: hoursAgo(52), updatedAt: hoursAgo(20),
+          mk("TKT-1041", { title: "Export to CSV missing the last row", desc: "The CSV export drops the final record in tables longer than one page.", raiser: "Sam Okonkwo", category: "Bug", region: "Asia-Pacific", language: "English", priority: "High", status: "Picked up", owner: "Meera K.", createdAt: hoursAgo(52), updatedAt: hoursAgo(20),
             activity: [{ at: hoursAgo(20), text: "Picked up by Meera K." }, { at: hoursAgo(52), text: "Ticket raised" }] }),
-          mk("TKT-1040", { title: "Can't reset my API key", desc: "The 'Regenerate key' button spins forever and nothing happens.", raiser: "Devansh Gupta", category: "Account / Access", priority: "Normal", status: "Raised", owner: null, createdAt: hoursAgo(29), updatedAt: hoursAgo(29),
+          mk("TKT-1040", { title: "Can't reset my API key", desc: "The 'Regenerate key' button spins forever and nothing happens.", raiser: "Devansh Gupta", category: "Account / Access", region: "South Asia", language: "Hindi", priority: "Normal", status: "Raised", owner: null, createdAt: hoursAgo(29), updatedAt: hoursAgo(29),
             activity: [{ at: hoursAgo(29), text: "Ticket raised" }] }),
-          mk("TKT-1039", { title: "Add dark mode to the dashboard", desc: "Would love a dark theme for late-night on-call work.", raiser: "Lena Fischer", category: "Feature request", priority: "Low", status: "Raised", owner: null, createdAt: hoursAgo(24 * 21), updatedAt: hoursAgo(24 * 21),
+          mk("TKT-1039", { title: "Add dark mode to the dashboard", desc: "Would love a dark theme for late-night on-call work.", raiser: "Lena Fischer", category: "Feature request", region: "Europe", language: "German", priority: "Low", status: "Raised", owner: null, createdAt: hoursAgo(24 * 21), updatedAt: hoursAgo(24 * 21),
             activity: [{ at: hoursAgo(24 * 21), text: "Ticket raised" }] }),
-          mk("TKT-1038", { title: "Invoice shows wrong tax rate", desc: "August invoice applied 18% instead of our contracted 12%.", raiser: "Priya Menon", category: "Billing", priority: "High", status: "Resolved", owner: "Arjun R.", createdAt: hoursAgo(96), updatedAt: hoursAgo(30),
+          mk("TKT-1038", { title: "Invoice shows wrong tax rate", desc: "August invoice applied 18% instead of our contracted 12%.", raiser: "Priya Menon", category: "Billing", region: "Latin America", language: "Portuguese", priority: "High", status: "Resolved", owner: "Arjun R.", createdAt: hoursAgo(96), updatedAt: hoursAgo(30),
             activity: [{ at: hoursAgo(30), text: "Status → Resolved" }, { at: hoursAgo(70), text: "Status → In progress" }, { at: hoursAgo(80), text: "Picked up by Arjun R." }, { at: hoursAgo(96), text: "Ticket raised" }] }),
         ];
         localStorage.setItem(SEQ, "1042");
@@ -398,8 +425,9 @@
       function createTicket(data) {
         const t = {
           id: nextId(), title: data.title, desc: data.desc, raiser: data.raiser,
-          category: data.category, priority: data.priority, status: "Raised", owner: null,
-          createdAt: nowISO(), updatedAt: nowISO(), activity: [{ at: nowISO(), text: "Ticket raised by " + data.raiser }],
+          category: data.category, priority: data.priority, region: data.region, language: data.language,
+          status: "Raised", owner: null,
+          createdAt: nowISO(), updatedAt: nowISO(), activity: [{ at: nowISO(), text: "Ticket raised by " + data.raiser + " (" + data.region + ")" }],
         };
         tickets.unshift(t); save(); return t;
       }
@@ -440,6 +468,8 @@
         if (filters.priority && t.priority !== filters.priority) return false;
         if (filters.category && t.category !== filters.category) return false;
         if (filters.owner && (t.owner || "Unassigned") !== filters.owner) return false;
+        if (filters.region && t.region !== filters.region) return false;
+        if (filters.language && t.language !== filters.language) return false;
         if (filters.q) {
           const hay = (t.id + " " + t.title + " " + t.desc + " " + t.raiser + " " + (t.owner || "")).toLowerCase();
           if (!hay.includes(filters.q.toLowerCase())) return false;
@@ -455,6 +485,7 @@
           <div class="card__title">${esc(t.title)}</div>
           <div class="card__meta">
             <span class="pill">${esc(t.category)}</span>
+            ${t.region ? `<span class="pill" title="${esc(t.language || "")}">🌐 ${esc(t.region)}</span>` : ""}
             <span class="card__owner ${t.owner ? "" : "unassigned"}">${t.owner ? "👤 " + esc(t.owner) : "unassigned"}</span>
             <span class="age ${ageOld ? "old" : ""}" title="Raised ${fmt(t.createdAt)}">${timeAgo(t.createdAt)}</span>
           </div>
@@ -515,14 +546,22 @@
         if (t.status === "Resolved" || t.status === "Closed") acts.push(`<button class="act act--warn" data-act="reopen">Reopen</button>`);
 
         const owners = Array.from(new Set(tickets.map((x) => x.owner).filter(Boolean)));
+        const tz = REGION_TZ[t.region]; const cn = tz ? clientNow(tz) : null;
         $("#m-body").innerHTML = `
           <div class="mrow">
             <span class="pill pill--pri" style="--pc:${PRI_COLOR[t.priority]}">${esc(t.priority)}</span>
             <span class="pill">${esc(t.category)}</span>
             <span class="pill" style="color:${STATUS_COLOR[t.status]};border-color:${STATUS_COLOR[t.status]}55">${t.status}</span>
             <span class="pill">${t.owner ? "👤 " + esc(t.owner) : "unassigned"}</span>
+            ${t.region ? `<span class="pill">🌐 ${esc(t.region)}</span>` : ""}
+            ${t.language ? `<span class="pill">🗣 ${esc(t.language)}</span>` : ""}
             <span class="age ${isOpen(t) && Date.now() - new Date(t.createdAt) > 6048e5 ? "old" : ""}">open ${timeAgo(t.createdAt)}</span>
           </div>
+          ${tz ? `<div style="font-size:0.82rem;color:var(--text-dim);margin:-0.5rem 0 1.1rem;line-height:1.6">
+            Client local time <b style="color:var(--text)">${cn ? cn.time : "—"}</b>
+            ${cn ? `<span style="color:${cn.business ? "var(--ok)" : "var(--high)"}">· ${cn.business ? "business hours" : "outside client hours"}</span>` : ""}
+            &nbsp;·&nbsp; raised ${fmtTz(t.createdAt, tz)} client time
+          </div>` : ""}
           <p class="desc">${t.desc ? esc(t.desc) : "<em style='color:var(--text-faint)'>No description.</em>"}</p>
           <div class="actions">${acts.join("") || '<span style="color:var(--text-faint);font-size:0.85rem">No lifecycle actions — ticket is closed.</span>'}</div>
           <div class="ctrl-grid">
@@ -569,6 +608,10 @@
         $("#f-category").innerHTML = `<option value="">All categories</option>` + CATEGORIES.map((s) => `<option>${s}</option>`).join("");
         $("#t-cat").innerHTML = CATEGORIES.map((s) => `<option>${s}</option>`).join("");
         $("#t-pri").innerHTML = PRIORITIES.map((s) => `<option ${s === "Normal" ? "selected" : ""}>${s}</option>`).join("");
+        $("#f-region").innerHTML = `<option value="">All regions</option>` + REGIONS.map((r) => `<option>${r.name}</option>`).join("");
+        $("#f-language").innerHTML = `<option value="">All languages</option>` + LANGUAGES.map((s) => `<option>${s}</option>`).join("");
+        $("#t-region").innerHTML = REGIONS.map((r) => `<option ${r.name === "Europe" ? "selected" : ""}>${r.name}</option>`).join("");
+        $("#t-lang").innerHTML = LANGUAGES.map((s) => `<option>${s}</option>`).join("");
       }
 
       function setMode(m) {
@@ -591,9 +634,10 @@
         // filters
         const bind = (id, key) => $(id).addEventListener("change", (e) => { filters[key] = e.target.value; render(); });
         bind("#f-status", "status"); bind("#f-priority", "priority"); bind("#f-category", "category"); bind("#f-owner", "owner");
+        bind("#f-region", "region"); bind("#f-language", "language");
         $("#clear-filters").addEventListener("click", () => {
-          filters = { status: "", priority: "", category: "", owner: "", q: filters.q };
-          ["#f-status", "#f-priority", "#f-category", "#f-owner"].forEach((s) => ($(s).value = ""));
+          filters = { status: "", priority: "", category: "", owner: "", region: "", language: "", q: filters.q };
+          ["#f-status", "#f-priority", "#f-category", "#f-owner", "#f-region", "#f-language"].forEach((s) => ($(s).value = ""));
           render();
         });
         $("#search").addEventListener("input", (e) => { filters.q = e.target.value; render(); });
@@ -628,7 +672,7 @@
           const title = $("#t-title").value.trim(), name = $("#t-name").value.trim();
           const msg = $("#form-msg");
           if (!title || !name) { msg.className = "form-msg err"; msg.textContent = "Title and your name are both required."; return; }
-          const t = createTicket({ title, raiser: name, desc: $("#t-desc").value.trim(), category: $("#t-cat").value, priority: $("#t-pri").value });
+          const t = createTicket({ title, raiser: name, desc: $("#t-desc").value.trim(), category: $("#t-cat").value, priority: $("#t-pri").value, region: $("#t-region").value, language: $("#t-lang").value });
           msg.className = "form-msg ok"; msg.textContent = "Raised " + t.id + " — track it on the right.";
           $("#t-title").value = ""; $("#t-desc").value = "";
           renderMine(); renderStats(); toast(t.id + " raised");
