@@ -1,0 +1,46 @@
+// Prisma schema for the ticketing system.
+//
+// Using SQLite so the app runs with zero setup (a local file DB).
+// To use PostgreSQL in production, change ONLY these two lines:
+//     provider = "postgresql"
+//     url      = env("DATABASE_URL")   // e.g. postgresql://user:pass@host:5432/db
+// ...and run `npx prisma db push`. The models and app code stay identical.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Ticket {
+  id          String     @id @default(cuid())
+  ref         String     @unique // human id, e.g. TKT-1042
+  title       String
+  description String     @default("")
+  requester   String
+  category    String // Bug | Feature request | Account / Access | Billing | How-to / Query | Other
+  priority    String // Urgent | High | Normal | Low
+  status      String     @default("Raised") // Raised | Picked up | In progress | Resolved | Closed
+  owner       String?
+  region      String // North America | Latin America | Europe | Middle East & Africa | South Asia | Asia-Pacific
+  language    String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  activity    Activity[]
+
+  @@index([status])
+  @@index([priority])
+}
+
+model Activity {
+  id       String   @id @default(cuid())
+  ticket   Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId String
+  text     String
+  at       DateTime @default(now())
+
+  @@index([ticketId])
+}
