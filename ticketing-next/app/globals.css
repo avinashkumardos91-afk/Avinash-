@@ -12,7 +12,7 @@ html, body { height: 100%; margin: 0; }
     border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 9px;
     padding: 0.5rem 0.65rem; font-size: 0.85rem; outline: none;
   }
-  input:focus, select:focus, textarea:focus { border-color: #8b7bff; }
+  input:focus, select:focus, textarea:focus { border-color: #00e599; }
   input::placeholder, textarea::placeholder { color: #6b7395; }
 }
 
@@ -21,11 +21,11 @@ html, body { height: 100%; margin: 0; }
   .pill { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.16rem 0.5rem; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.1); color: #9aa3c4; }
   .btn { border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.04); color: #eef1fb; border-radius: 10px; padding: 0.5rem 0.9rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: border-color .2s, background .2s; }
   .btn:hover { border-color: rgba(255, 255, 255, 0.22); background: rgba(255, 255, 255, 0.07); }
-  .btn-primary { border: 0; background: linear-gradient(110deg, #8b7bff, #3fe0d0); color: #0a0b12; font-weight: 700; }
-  .grad-text { background: linear-gradient(110deg, #8b7bff, #3fe0d0); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .btn-primary { border: 0; background: linear-gradient(110deg, #00e599, #22d3ee); color: #0a0b12; font-weight: 700; }
+  .grad-text { background: linear-gradient(110deg, #00e599, #22d3ee); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .log li { position: relative; padding: 0 0 0.9rem 1.2rem; border-left: 1px solid rgba(255, 255, 255, 0.1); }
   .log li:last-child { border-left-color: transparent; padding-bottom: 0; }
-  .log li::before { content: ""; position: absolute; left: -4px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: #8b7bff; }
+  .log li::before { content: ""; position: absolute; left: -4px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: #00e599; }
 }
 
 @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; } }

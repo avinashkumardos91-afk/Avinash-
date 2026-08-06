@@ -8,6 +8,7 @@ import {
   PRIORITY_HEX, STATUS_HEX, nextActions, type Ticket,
 } from "@/lib/types";
 import { timeAgo, fmt, fmtTz, clientNow, isOpen } from "@/lib/format";
+import NeonHero from "@/components/NeonHero";
 
 const TicketCanvas = dynamic(() => import("@/components/TicketCanvas"), {
   ssr: false,
@@ -25,6 +26,7 @@ export default function Page() {
   const [selected, setSelected] = useState<string | null>(null);
   const [raiseOpen, setRaiseOpen] = useState(false);
   const [toast, setToast] = useState("");
+  const [entered, setEntered] = useState(false);
 
   useEffect(() => { setAgent(localStorage.getItem("tk.agent") || ""); }, []);
   useEffect(() => { localStorage.setItem("tk.agent", agent); }, [agent]);
@@ -71,6 +73,8 @@ export default function Page() {
 
   const sel3 = "min-w-[120px]";
   const setF = (k: keyof Filters, v: string) => setFilters((f) => ({ ...f, [k]: v }));
+
+  if (!entered) return <NeonHero onEnter={() => setEntered(true)} />;
 
   return (
     <main className="relative h-screen w-screen overflow-hidden bg-bg text-ink">

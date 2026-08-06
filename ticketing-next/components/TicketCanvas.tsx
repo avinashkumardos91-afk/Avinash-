@@ -53,12 +53,12 @@ export default function TicketCanvas({
       gl={{ antialias: true }}
       style={{ width: "100%", height: "100%" }}
     >
-      <color attach="background" args={["#080910"]} />
-      <fog attach="fog" args={["#080910", 16, 34]} />
+      <color attach="background" args={["#08090a"]} />
+      <fog attach="fog" args={["#08090a", 16, 34]} />
       <ambientLight intensity={0.6} />
       <directionalLight position={[6, 10, 6]} intensity={1.4} castShadow shadow-mapSize={[2048, 2048]} />
-      <pointLight position={[-8, 3, 4]} intensity={0.7} color="#8b7bff" />
-      <pointLight position={[8, -2, 6]} intensity={0.6} color="#3fe0d0" />
+      <pointLight position={[-8, 3, 4]} intensity={0.7} color="#00e599" />
+      <pointLight position={[8, -2, 6]} intensity={0.6} color="#22d3ee" />
 
       {STATUSES.map((status, li) => {
         const x = (li - (STATUSES.length - 1) / 2) * LANE_GAP;
@@ -82,9 +82,9 @@ export default function TicketCanvas({
         position={[0, -6.5, 0]}
         args={[40, 40]}
         cellSize={1.4}
-        cellColor="#1b2036"
+        cellColor="#10241d"
         sectionSize={7}
-        sectionColor="#2a3352"
+        sectionColor="#134e3a"
         fadeDistance={38}
         fadeStrength={1.5}
         infiniteGrid

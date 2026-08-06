@@ -5,17 +5,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: "#080910",
-        bg2: "#0d0f1a",
-        surface: "rgba(255,255,255,0.04)",
-        surface2: "rgba(255,255,255,0.07)",
-        line: "rgba(255,255,255,0.10)",
-        line2: "rgba(255,255,255,0.18)",
-        ink: "#eef1fb",
-        dim: "#9aa3c4",
-        faint: "#6b7395",
-        violet: "#8b7bff",
-        cyan: "#3fe0d0",
+        // neon.tech-inspired: near-black grounds, electric green → teal accent
+        bg: "#08090a",
+        bg2: "#0e1113",
+        surface: "rgba(255,255,255,0.035)",
+        surface2: "rgba(255,255,255,0.06)",
+        line: "rgba(255,255,255,0.09)",
+        line2: "rgba(0,229,153,0.28)",
+        ink: "#ecfdf5",
+        dim: "#8b9a95",
+        faint: "#5c6a66",
+        violet: "#00e599", // accent 1 (neon green)
+        cyan: "#22d3ee", // accent 2 (teal)
         urgent: "#ff5c72",
         high: "#ffab5e",
         normal: "#6ea8fe",
