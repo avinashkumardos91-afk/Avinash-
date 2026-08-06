@@ -9,6 +9,7 @@ import {
 } from "@/lib/types";
 import { timeAgo, fmt, fmtTz, clientNow, isOpen } from "@/lib/format";
 import NeonHero from "@/components/NeonHero";
+import ChatAssistant from "@/components/ChatAssistant";
 
 const TicketCanvas = dynamic(() => import("@/components/TicketCanvas"), {
   ssr: false,
@@ -123,6 +124,9 @@ export default function Page() {
       <p className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2 text-[0.66rem] uppercase tracking-[0.2em] text-faint">
         Drag to orbit · scroll to zoom · click a ticket
       </p>
+
+      {/* AI assistant chat box — lower section; states the response-time policy */}
+      <ChatAssistant tickets={tickets} />
 
       {/* ---------- TICKET MODAL ---------- */}
       <AnimatePresence>
