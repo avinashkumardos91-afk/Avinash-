@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  TICKETING SYSTEM — support & ticketing platform
+  Vanilla HTML/CSS/JS · localStorage persistence · no backend
+  See spec.md for the graded specification.
+  ============================================================
+-->
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ticketing System — Ticketing</title>
+    <meta name="description" content="Ticketing System — a support & ticketing platform for queries, problems and bugs. Raise, own and resolve tickets through a clear lifecycle." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #080910;
+        --bg-2: #0d0f1a;
+        --surface: rgba(255, 255, 255, 0.04);
+        --surface-2: rgba(255, 255, 255, 0.07);
+        --border: rgba(255, 255, 255, 0.1);
+        --border-2: rgba(255, 255, 255, 0.18);
+        --text: #eef1fb;
+        --text-dim: #9aa3c4;
+        --text-faint: #6b7395;
+        --violet: #8b7bff;
+        --cyan: #3fe0d0;
+        --grad: linear-gradient(110deg, #8b7bff, #3fe0d0);
+        --urgent: #ff5c72;
+        --high: #ffab5e;
+        --normal: #6ea8fe;
+        --low: #7f89a8;
+        --ok: #3fe0a0;
+        --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+        color-scheme: dark;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        background: var(--bg); color: var(--text);
+        font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1, h2, h3, .sora { font-family: "Sora", "Inter", sans-serif; margin: 0; }
+      button { font-family: inherit; cursor: pointer; }
+      .grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+      /* ---------------- HERO ---------------- */
+      .hero {
+        position: relative; min-height: 100svh; display: grid; place-items: center;
+        text-align: center; overflow: hidden; padding: 2rem;
+      }
+      #bg3d { position: absolute; inset: 0; z-index: 0; }
+      .hero::after {
+        content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+        background:
+          radial-gradient(60% 50% at 50% 40%, transparent, var(--bg) 78%),
+          radial-gradient(40vw 40vw at 78% 18%, rgba(139, 123, 255, 0.14), transparent 60%),
+          radial-gradient(40vw 40vw at 20% 85%, rgba(63, 224, 208, 0.1), transparent 60%);
+      }
+      .hero__inner { position: relative; z-index: 2; max-width: 640px; }
+      .badge {
+        display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.6rem;
+        padding: 0.4rem 0.9rem; border-radius: 999px; border: 1px solid var(--border);
+        background: var(--surface); font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim);
+      }
+      .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+      .hero h1 { font-size: clamp(3rem, 9vw, 6rem); line-height: 0.98; font-weight: 800; letter-spacing: -0.03em; }
+      .hero p { margin: 1.3rem auto 0; max-width: 48ch; font-size: 1.05rem; line-height: 1.65; color: var(--text-dim); }
+      .cta {
+        margin-top: 2.4rem; display: inline-flex; align-items: center; gap: 0.6rem;
+        padding: 0.95rem 1.7rem; border-radius: 12px; border: 0;
+        background: var(--grad); color: #0a0b12; font-weight: 700; font-size: 0.95rem;
+        transition: transform 0.18s ease, box-shadow 0.25s ease; box-shadow: 0 10px 34px rgba(139, 123, 255, 0.28);
+      }
+      .cta:hover { transform: translateY(-2px); box-shadow: 0 16px 44px rgba(139, 123, 255, 0.4); }
+
+      /* ---------------- CONSOLE ---------------- */
+      .console { display: none; min-height: 100vh; flex-direction: column; }
+      .console.is-on { display: flex; }
+
+      .topbar {
+        position: sticky; top: 0; z-index: 30;
+        display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+        padding: 0.85rem clamp(1rem, 3vw, 2rem);
+        background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+      }
+      .brand { display: flex; align-items: center; gap: 0.6rem; font-family: "Sora"; font-weight: 800; letter-spacing: 0.02em; }
+      .brand .mark { width: 26px; height: 26px; border-radius: 8px; background: var(--grad); display: grid; place-items: center; color: #0a0b12; font-size: 0.8rem; font-weight: 800; }
+      .brand em { font-style: normal; color: var(--text-faint); font-weight: 600; font-size: 0.85rem; }
+
+      .modes { display: flex; padding: 3px; border-radius: 11px; border: 1px solid var(--border); background: var(--surface); }
+      .modes button { border: 0; background: none; color: var(--text-dim); padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; }
+      .modes button.is-active { background: var(--surface-2); color: var(--text); }
+
+      .spacer { flex: 1 1 auto; }
+      .agent-field { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--text-faint); }
+      input, select, textarea {
+        font-family: inherit; font-size: 0.9rem; color: var(--text);
+        background: var(--bg-2); border: 1px solid var(--border); border-radius: 9px; padding: 0.55rem 0.7rem; outline: none;
+        transition: border-color 0.2s ease;
+      }
+      input:focus, select:focus, textarea:focus { border-color: var(--violet); }
+      input::placeholder, textarea::placeholder { color: var(--text-faint); }
+      .search { min-width: 200px; }
+
+      .wrap { width: 100%; max-width: 1320px; margin: 0 auto; padding: 1.4rem clamp(1rem, 3vw, 2rem) 4rem; }
+
+      /* stat tiles */
+      .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.9rem; margin-bottom: 1.6rem; }
+      @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+      .tile { position: relative; padding: 1.1rem 1.2rem; border-radius: 15px; border: 1px solid var(--border); background: var(--surface); overflow: hidden; }
+      .tile::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--grad); opacity: 0.8; }
+      .tile b { display: block; font-family: "Sora"; font-size: 2.1rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
+      .tile span { display: block; margin-top: 0.4rem; font-size: 0.74rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); }
+      .tile--urgent b { color: var(--urgent); }
+      .tile--urgent::before { background: var(--urgent); }
+      .tile--warn b { color: var(--high); }
+      .tile--warn::before { background: var(--high); }
+
+      /* filters */
+      .filters { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-bottom: 1.3rem; }
+      .filters select { min-width: 130px; }
+      .btn-ghost { border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); border-radius: 9px; padding: 0.55rem 0.9rem; font-size: 0.82rem; font-weight: 600; }
+      .btn-ghost:hover { border-color: var(--border-2); color: var(--text); }
+
+      /* board */
+      .board { display: grid; grid-template-columns: repeat(5, minmax(210px, 1fr)); gap: 0.9rem; align-items: start; overflow-x: auto; padding-bottom: 0.5rem; }
+      .col { background: var(--bg-2); border: 1px solid var(--border); border-radius: 15px; padding: 0.8rem; min-height: 120px; }
+      .col.drag-over { border-color: var(--violet); background: color-mix(in srgb, var(--violet) 8%, var(--bg-2)); }
+      .col__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.7rem; padding: 0 0.2rem; }
+      .col__head h3 { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); font-family: "Inter"; font-weight: 700; }
+      .col__count { font-size: 0.72rem; font-weight: 700; color: var(--text-faint); background: var(--surface); border-radius: 999px; padding: 0.1rem 0.5rem; }
+      .col__list { display: grid; gap: 0.6rem; min-height: 8px; }
+      .col__empty { font-size: 0.78rem; color: var(--text-faint); text-align: center; padding: 1.2rem 0; font-style: italic; }
+
+      .card {
+        position: relative; padding: 0.8rem 0.85rem 0.8rem 1rem; border-radius: 12px;
+        border: 1px solid var(--border); background: var(--surface); cursor: grab;
+        transition: transform 0.15s ease, border-color 0.2s ease, background 0.2s ease;
+      }
+      .card:hover { border-color: var(--border-2); background: var(--surface-2); transform: translateY(-2px); }
+      .card:active { cursor: grabbing; }
+      .card.dragging { opacity: 0.5; }
+      .card::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--pc, var(--normal)); }
+      .card__top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.35rem; }
+      .card__id { font-size: 0.7rem; font-weight: 700; color: var(--text-faint); letter-spacing: 0.03em; }
+      .card__title { font-size: 0.92rem; font-weight: 600; line-height: 1.35; }
+      .card__meta { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-top: 0.6rem; }
+      .pill { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.16rem 0.5rem; border-radius: 999px; border: 1px solid var(--border); color: var(--text-dim); background: var(--bg-2); }
+      .pill--pri { color: var(--pc); border-color: color-mix(in srgb, var(--pc) 45%, transparent); }
+      .card__owner { font-size: 0.72rem; color: var(--text-dim); }
+      .card__owner.unassigned { color: var(--high); }
+      .age { font-size: 0.72rem; color: var(--text-faint); margin-left: auto; }
+      .age.old { color: var(--urgent); font-weight: 600; }
+
+      /* raise view */
+      .raise-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6rem; align-items: start; }
+      @media (max-width: 860px) { .raise-grid { grid-template-columns: 1fr; } }
+      .panel { border: 1px solid var(--border); background: var(--surface); border-radius: 16px; padding: 1.4rem; }
+      .panel h2 { font-size: 1.3rem; margin-bottom: 0.3rem; }
+      .panel > p.sub { margin: 0 0 1.2rem; color: var(--text-dim); font-size: 0.9rem; }
+      .field { display: grid; gap: 0.4rem; margin-bottom: 0.9rem; }
+      .field label { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+      .field.two { grid-template-columns: 1fr 1fr; gap: 0.9rem; display: grid; }
+      .field.two > div { display: grid; gap: 0.4rem; }
+      .btn-primary { width: 100%; border: 0; border-radius: 11px; background: var(--grad); color: #0a0b12; font-weight: 700; font-size: 0.95rem; padding: 0.85rem; margin-top: 0.4rem; transition: transform 0.15s ease; }
+      .btn-primary:hover { transform: translateY(-1px); }
+      .form-msg { min-height: 1.1rem; font-size: 0.8rem; margin-top: 0.5rem; }
+      .form-msg.err { color: var(--urgent); }
+      .form-msg.ok { color: var(--ok); }
+
+      .mine-list { display: grid; gap: 0.6rem; }
+      .mine-empty { color: var(--text-faint); font-size: 0.9rem; font-style: italic; padding: 1rem 0; }
+      .mine-row { display: flex; align-items: center; gap: 0.7rem; padding: 0.75rem 0.85rem; border: 1px solid var(--border); border-radius: 11px; background: var(--bg-2); cursor: pointer; }
+      .mine-row:hover { border-color: var(--border-2); }
+      .mine-row .status-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+      .mine-row .m-title { font-weight: 600; font-size: 0.9rem; }
+      .mine-row .m-id { font-size: 0.7rem; color: var(--text-faint); }
+      .status-badge { font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.16rem 0.5rem; border-radius: 999px; margin-left: auto; }
+
+      /* modal */
+      .modal { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 1rem; }
+      .modal[hidden] { display: none; }
+      .modal__bg { position: absolute; inset: 0; background: rgba(4, 5, 10, 0.72); backdrop-filter: blur(6px); }
+      .modal__panel { position: relative; width: min(680px, 100%); max-height: 88vh; overflow-y: auto; border: 1px solid var(--border-2); border-radius: 18px; background: var(--bg-2); box-shadow: var(--shadow); }
+      .modal__head { padding: 1.3rem 1.5rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg-2); z-index: 2; }
+      .modal__head .mh-id { font-size: 0.72rem; font-weight: 700; color: var(--text-faint); letter-spacing: 0.05em; }
+      .modal__head h2 { font-size: 1.5rem; margin: 0.25rem 0 0; line-height: 1.2; }
+      .modal__close { position: absolute; top: 1.1rem; right: 1.2rem; width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); font-size: 1.1rem; }
+      .modal__close:hover { color: var(--text); }
+      .modal__body { padding: 1.3rem 1.5rem; }
+      .mrow { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.1rem; }
+      .desc { color: var(--text-dim); line-height: 1.6; font-size: 0.94rem; white-space: pre-wrap; margin: 0 0 1.3rem; }
+      .actions { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-bottom: 1.3rem; }
+      .act { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 10px; padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 600; }
+      .act:hover { border-color: var(--border-2); }
+      .act--go { background: var(--grad); color: #0a0b12; border: 0; }
+      .act--warn { color: var(--high); border-color: color-mix(in srgb, var(--high) 40%, transparent); }
+      .ctrl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1.3rem; }
+      @media (max-width: 520px) { .ctrl-grid { grid-template-columns: 1fr; } }
+      .ctrl-grid .field { margin: 0; }
+      .note-add { display: flex; gap: 0.5rem; margin-bottom: 1.3rem; }
+      .note-add input { flex: 1; }
+      .note-add button { border: 0; border-radius: 9px; background: var(--surface-2); color: var(--text); padding: 0 1rem; font-weight: 600; }
+
+      .log-title { font-size: 0.74rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.7rem; }
+      .log { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; position: relative; }
+      .log li { position: relative; padding: 0 0 1rem 1.3rem; border-left: 1px solid var(--border); }
+      .log li:last-child { border-left-color: transparent; padding-bottom: 0; }
+      .log li::before { content: ""; position: absolute; left: -4px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--violet); }
+      .log .l-text { font-size: 0.88rem; }
+      .log .l-time { font-size: 0.72rem; color: var(--text-faint); margin-top: 0.15rem; }
+
+      /* toast */
+      .toast { position: fixed; left: 50%; bottom: 1.6rem; transform: translate(-50%, 12px); z-index: 200; padding: 0.7rem 1.2rem; border-radius: 12px; border: 1px solid var(--border-2); background: var(--bg-2); box-shadow: var(--shadow); font-size: 0.85rem; opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; }
+      .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+      @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; } }
+    </style>
+  </head>
+  <body>
+    <!-- ============== HERO ============== -->
+    <section class="hero" id="hero">
+      <canvas id="bg3d"></canvas>
+      <div class="hero__inner">
+        <span class="badge"><span class="dot"></span> Support &amp; Ticketing Platform</span>
+        <h1><span class="grad-text">Ticketing System</span></h1>
+        <p>Queries, problems and bugs — raised, owned and resolved through one clear lifecycle. Nothing forgotten, nothing lost.</p>
+        <button class="cta" id="enter">Enter the console →</button>
+      </div>
+    </section>
+
+    <!-- ============== CONSOLE ============== -->
+    <div class="console" id="console">
+      <header class="topbar">
+        <div class="brand"><span class="mark">E</span> Ticketing <em>AI</em></div>
+        <div class="modes" id="modes">
+          <button data-mode="resolve" class="is-active">Resolve queue</button>
+          <button data-mode="raise">Raise a ticket</button>
+        </div>
+        <div class="spacer"></div>
+        <label class="agent-field">You are
+          <input id="agent" class="search" style="min-width:130px" placeholder="agent name" />
+        </label>
+        <input id="search" class="search" type="search" placeholder="Search tickets…" />
+      </header>
+
+      <div class="wrap">
+        <!-- dashboard: the four questions -->
+        <div class="stats" id="stats"></div>
+
+        <!-- RESOLVE VIEW -->
+        <section id="view-resolve">
+          <div class="filters">
+            <select id="f-status"><option value="">All statuses</option></select>
+            <select id="f-priority"><option value="">All priorities</option></select>
+            <select id="f-category"><option value="">All categories</option></select>
+            <select id="f-owner"><option value="">All owners</option></select>
+            <button class="btn-ghost" id="clear-filters">Clear</button>
+          </div>
+          <div class="board" id="board"></div>
+        </section>
+
+        <!-- RAISE VIEW -->
+        <section id="view-raise" style="display:none">
+          <div class="raise-grid">
+            <div class="panel">
+              <h2>Raise a ticket</h2>
+              <p class="sub">Report a query, problem or bug. You'll get an ID and can track it below.</p>
+              <form id="raise-form">
+                <div class="field">
+                  <label for="t-title">Title *</label>
+                  <input id="t-title" placeholder="Short summary of the problem" />
+                </div>
+                <div class="field two">
+                  <div><label for="t-name">Your name *</label><input id="t-name" placeholder="Who is reporting" /></div>
+                  <div><label for="t-cat">Category</label><select id="t-cat"></select></div>
+                </div>
+                <div class="field">
+                  <label for="t-pri">Priority</label>
+                  <select id="t-pri"></select>
+                </div>
+                <div class="field">
+                  <label for="t-desc">Description</label>
+                  <textarea id="t-desc" rows="4" placeholder="What went wrong? Steps, error messages, what you expected…"></textarea>
+                </div>
+                <button class="btn-primary" type="submit">Submit ticket</button>
+                <p class="form-msg" id="form-msg"></p>
+              </form>
+            </div>
+            <div class="panel">
+              <h2>Track your tickets</h2>
+              <p class="sub">Tickets raised by the name entered on the left.</p>
+              <div class="mine-list" id="mine"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ============== MODAL ============== -->
+    <div class="modal" id="modal" hidden>
+      <div class="modal__bg" data-close></div>
+      <div class="modal__panel">
+        <div class="modal__head">
+          <div class="mh-id" id="m-id"></div>
+          <h2 id="m-title"></h2>
+          <button class="modal__close" data-close aria-label="Close">✕</button>
+        </div>
+        <div class="modal__body" id="m-body"></div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      "use strict";
+      // ---------- constants ----------
+      const STATUSES = ["Raised", "Picked up", "In progress", "Resolved", "Closed"];
+      const PRIORITIES = ["Urgent", "High", "Normal", "Low"];
+      const CATEGORIES = ["Bug", "Feature request", "Account / Access", "Billing", "How-to / Query", "Other"];
+      const PRI_COLOR = { Urgent: "var(--urgent)", High: "var(--high)", Normal: "var(--normal)", Low: "var(--low)" };
+      const STATUS_COLOR = { "Raised": "#7f89a8", "Picked up": "#6ea8fe", "In progress": "#8b7bff", "Resolved": "#3fe0a0", "Closed": "#4a5270" };
+      const KEY = "ticketing.tickets.v1", SEQ = "ticketing.seq.v1", AGENT = "ticketing.agent.v1";
+
+      // ---------- state ----------
+      let tickets = [];
+      let filters = { status: "", priority: "", category: "", owner: "", q: "" };
+      let mode = "resolve";
+
+      // ---------- storage ----------
+      function load() {
+        try { tickets = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { tickets = []; }
+        if (!tickets.length) { seed(); }
+      }
+      function save() { try { localStorage.setItem(KEY, JSON.stringify(tickets)); } catch (e) {} }
+      function nextId() {
+        let n = parseInt(localStorage.getItem(SEQ) || "1041", 10) + 1;
+        localStorage.setItem(SEQ, String(n));
+        return "TKT-" + n;
+      }
+
+      // ---------- helpers ----------
+      const $ = (s, r = document) => r.querySelector(s);
+      const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const nowISO = () => new Date().toISOString();
+      function timeAgo(iso) {
+        const d = Math.max(0, Date.now() - new Date(iso).getTime());
+        const m = Math.floor(d / 6e4), h = Math.floor(d / 36e5), day = Math.floor(d / 864e5);
+        if (m < 1) return "just now";
+        if (m < 60) return m + "m";
+        if (h < 24) return h + "h " + (m % 60) + "m";
+        if (day < 7) return day + "d " + (h % 24) + "h";
+        return Math.floor(day / 7) + "w " + (day % 7) + "d";
+      }
+      function fmt(iso) { return new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); }
+      function isOpen(t) { return t.status !== "Closed"; }
+      function agentName() { return ($("#agent").value || "").trim(); }
+
+      function toast(msg) {
+        const el = $("#toast"); el.textContent = msg; el.classList.add("show");
+        clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove("show"), 1900);
+      }
+
+      // ---------- seed ----------
+      function seed() {
+        const hoursAgo = (h) => new Date(Date.now() - h * 36e5).toISOString();
+        const mk = (id, over) => Object.assign({
+          id, title: "", desc: "", raiser: "", category: "Bug", priority: "Normal",
+          status: "Raised", owner: null, createdAt: hoursAgo(1), updatedAt: hoursAgo(1),
+          activity: [{ at: hoursAgo(1), text: "Ticket raised" }],
+        }, over);
+        tickets = [
+          mk("TKT-1042", { title: "Login page throws 500 after SSO redirect", desc: "Users with @acme.test accounts hit a 500 right after the SSO callback. Started this morning.", raiser: "Priya Menon", category: "Bug", priority: "Urgent", status: "In progress", owner: "Arjun R.", createdAt: hoursAgo(6), updatedAt: hoursAgo(1),
+            activity: [{ at: hoursAgo(1), text: "Status → In progress" }, { at: hoursAgo(3), text: "Picked up by Arjun R." }, { at: hoursAgo(6), text: "Ticket raised" }] }),
+          mk("TKT-1041", { title: "Export to CSV missing the last row", desc: "The CSV export drops the final record in tables longer than one page.", raiser: "Sam Okonkwo", category: "Bug", priority: "High", status: "Picked up", owner: "Meera K.", createdAt: hoursAgo(52), updatedAt: hoursAgo(20),
+            activity: [{ at: hoursAgo(20), text: "Picked up by Meera K." }, { at: hoursAgo(52), text: "Ticket raised" }] }),
+          mk("TKT-1040", { title: "Can't reset my API key", desc: "The 'Regenerate key' button spins forever and nothing happens.", raiser: "Devansh Gupta", category: "Account / Access", priority: "Normal", status: "Raised", owner: null, createdAt: hoursAgo(29), updatedAt: hoursAgo(29),
+            activity: [{ at: hoursAgo(29), text: "Ticket raised" }] }),
+          mk("TKT-1039", { title: "Add dark mode to the dashboard", desc: "Would love a dark theme for late-night on-call work.", raiser: "Lena Fischer", category: "Feature request", priority: "Low", status: "Raised", owner: null, createdAt: hoursAgo(24 * 21), updatedAt: hoursAgo(24 * 21),
+            activity: [{ at: hoursAgo(24 * 21), text: "Ticket raised" }] }),
+          mk("TKT-1038", { title: "Invoice shows wrong tax rate", desc: "August invoice applied 18% instead of our contracted 12%.", raiser: "Priya Menon", category: "Billing", priority: "High", status: "Resolved", owner: "Arjun R.", createdAt: hoursAgo(96), updatedAt: hoursAgo(30),
+            activity: [{ at: hoursAgo(30), text: "Status → Resolved" }, { at: hoursAgo(70), text: "Status → In progress" }, { at: hoursAgo(80), text: "Picked up by Arjun R." }, { at: hoursAgo(96), text: "Ticket raised" }] }),
+        ];
+        localStorage.setItem(SEQ, "1042");
+        save();
+      }
+
+      // ---------- mutations ----------
+      function findT(id) { return tickets.find((t) => t.id === id); }
+      function log(t, text) { t.activity.unshift({ at: nowISO(), text }); t.updatedAt = nowISO(); }
+
+      function createTicket(data) {
+        const t = {
+          id: nextId(), title: data.title, desc: data.desc, raiser: data.raiser,
+          category: data.category, priority: data.priority, status: "Raised", owner: null,
+          createdAt: nowISO(), updatedAt: nowISO(), activity: [{ at: nowISO(), text: "Ticket raised by " + data.raiser }],
+        };
+        tickets.unshift(t); save(); return t;
+      }
+      function setStatus(t, status, note) {
+        if (t.status === status) return;
+        t.status = status; log(t, note || ("Status → " + status)); save();
+      }
+      function pickUp(t) {
+        const who = agentName();
+        if (!who) { toast("Enter your name in “You are” to pick up"); $("#agent").focus(); return false; }
+        t.owner = who; t.status = "Picked up"; log(t, "Picked up by " + who); save(); return true;
+      }
+      function reassign(t, who) { t.owner = who || null; log(t, who ? ("Reassigned to " + who) : "Unassigned"); save(); }
+      function setPriority(t, p) { if (t.priority === p) return; t.priority = p; log(t, "Priority → " + p); save(); }
+      function addNote(t, text) { if (!text.trim()) return; log(t, "Note: " + text.trim()); save(); }
+
+      // ---------- rendering ----------
+      function renderStats() {
+        const open = tickets.filter(isOpen);
+        const urgent = open.filter((t) => t.priority === "Urgent").length;
+        const unassigned = open.filter((t) => !t.owner).length;
+        let oldest = "—";
+        if (open.length) {
+          const o = open.reduce((a, b) => (new Date(a.createdAt) < new Date(b.createdAt) ? a : b));
+          oldest = timeAgo(o.createdAt);
+        }
+        const tiles = [
+          { b: open.length, s: "Open tickets", c: "" },
+          { b: urgent, s: "Urgent &amp; open", c: urgent ? "tile--urgent" : "" },
+          { b: unassigned, s: "Unassigned", c: unassigned ? "tile--warn" : "" },
+          { b: oldest, s: "Oldest open", c: "" },
+        ];
+        $("#stats").innerHTML = tiles.map((t) => `<div class="tile ${t.c}"><b>${t.b}</b><span>${t.s}</span></div>`).join("");
+      }
+
+      function passFilters(t) {
+        if (filters.status && t.status !== filters.status) return false;
+        if (filters.priority && t.priority !== filters.priority) return false;
+        if (filters.category && t.category !== filters.category) return false;
+        if (filters.owner && (t.owner || "Unassigned") !== filters.owner) return false;
+        if (filters.q) {
+          const hay = (t.id + " " + t.title + " " + t.desc + " " + t.raiser + " " + (t.owner || "")).toLowerCase();
+          if (!hay.includes(filters.q.toLowerCase())) return false;
+        }
+        return true;
+      }
+
+      function cardHTML(t) {
+        const ageOld = Date.now() - new Date(t.createdAt).getTime() > 24 * 36e5 * 7 && isOpen(t);
+        return `<div class="card" draggable="true" data-id="${t.id}" style="--pc:${PRI_COLOR[t.priority]}">
+          <div class="card__top"><span class="card__id">${t.id}</span>
+            <span class="pill pill--pri">${esc(t.priority)}</span></div>
+          <div class="card__title">${esc(t.title)}</div>
+          <div class="card__meta">
+            <span class="pill">${esc(t.category)}</span>
+            <span class="card__owner ${t.owner ? "" : "unassigned"}">${t.owner ? "👤 " + esc(t.owner) : "unassigned"}</span>
+            <span class="age ${ageOld ? "old" : ""}" title="Raised ${fmt(t.createdAt)}">${timeAgo(t.createdAt)}</span>
+          </div>
+        </div>`;
+      }
+
+      function renderBoard() {
+        const board = $("#board");
+        board.innerHTML = STATUSES.map((st) => {
+          const list = tickets.filter((t) => t.status === st && passFilters(t));
+          const cards = list.length ? list.map(cardHTML).join("") : `<div class="col__empty">Nothing here</div>`;
+          return `<div class="col" data-status="${st}">
+            <div class="col__head"><h3>${st}</h3><span class="col__count">${list.length}</span></div>
+            <div class="col__list">${cards}</div>
+          </div>`;
+        }).join("");
+      }
+
+      function renderMine() {
+        const name = ($("#t-name").value || "").trim().toLowerCase();
+        const box = $("#mine");
+        if (!name) { box.innerHTML = `<p class="mine-empty">Enter your name on the left to see your tickets.</p>`; return; }
+        const mine = tickets.filter((t) => (t.raiser || "").toLowerCase() === name);
+        if (!mine.length) { box.innerHTML = `<p class="mine-empty">No tickets yet under “${esc($("#t-name").value.trim())}”.</p>`; return; }
+        box.innerHTML = mine.map((t) => `<div class="mine-row" data-id="${t.id}">
+          <span class="status-dot" style="background:${STATUS_COLOR[t.status]}"></span>
+          <div><div class="m-title">${esc(t.title)}</div><div class="m-id">${t.id} · raised ${timeAgo(t.createdAt)} ago</div></div>
+          <span class="status-badge" style="color:${STATUS_COLOR[t.status]};border:1px solid ${STATUS_COLOR[t.status]}44">${t.status}</span>
+        </div>`).join("");
+      }
+
+      function refreshOwners() {
+        const owners = Array.from(new Set(tickets.map((t) => t.owner).filter(Boolean))).sort();
+        const sel = $("#f-owner"); const cur = sel.value;
+        sel.innerHTML = `<option value="">All owners</option><option value="Unassigned">Unassigned</option>` +
+          owners.map((o) => `<option>${esc(o)}</option>`).join("");
+        sel.value = cur;
+      }
+
+      function render() {
+        renderStats();
+        if (mode === "resolve") { refreshOwners(); renderBoard(); }
+        else { renderMine(); }
+      }
+
+      // ---------- modal ----------
+      function openTicket(id) {
+        const t = findT(id); if (!t) return;
+        $("#m-id").textContent = t.id + " · raised by " + t.raiser + " · " + fmt(t.createdAt);
+        $("#m-title").textContent = t.title;
+
+        // contextual lifecycle actions
+        const acts = [];
+        if (t.status === "Raised") acts.push(`<button class="act act--go" data-act="pickup">Pick up</button>`);
+        if (t.status === "Picked up") acts.push(`<button class="act act--go" data-act="start">Start work</button>`);
+        if (t.status === "In progress") acts.push(`<button class="act act--go" data-act="resolve">Mark resolved</button>`);
+        if (t.status === "Resolved") acts.push(`<button class="act act--go" data-act="close">Close</button>`);
+        if (t.status === "Resolved" || t.status === "Closed") acts.push(`<button class="act act--warn" data-act="reopen">Reopen</button>`);
+
+        const owners = Array.from(new Set(tickets.map((x) => x.owner).filter(Boolean)));
+        $("#m-body").innerHTML = `
+          <div class="mrow">
+            <span class="pill pill--pri" style="--pc:${PRI_COLOR[t.priority]}">${esc(t.priority)}</span>
+            <span class="pill">${esc(t.category)}</span>
+            <span class="pill" style="color:${STATUS_COLOR[t.status]};border-color:${STATUS_COLOR[t.status]}55">${t.status}</span>
+            <span class="pill">${t.owner ? "👤 " + esc(t.owner) : "unassigned"}</span>
+            <span class="age ${isOpen(t) && Date.now() - new Date(t.createdAt) > 6048e5 ? "old" : ""}">open ${timeAgo(t.createdAt)}</span>
+          </div>
+          <p class="desc">${t.desc ? esc(t.desc) : "<em style='color:var(--text-faint)'>No description.</em>"}</p>
+          <div class="actions">${acts.join("") || '<span style="color:var(--text-faint);font-size:0.85rem">No lifecycle actions — ticket is closed.</span>'}</div>
+          <div class="ctrl-grid">
+            <div class="field"><label>Owner</label>
+              <input id="m-owner" list="owner-list" value="${esc(t.owner || "")}" placeholder="assign someone" />
+              <datalist id="owner-list">${owners.map((o) => `<option>${esc(o)}</option>`).join("")}</datalist>
+            </div>
+            <div class="field"><label>Priority</label>
+              <select id="m-pri">${PRIORITIES.map((p) => `<option ${p === t.priority ? "selected" : ""}>${p}</option>`).join("")}</select>
+            </div>
+          </div>
+          <div class="note-add">
+            <input id="m-note" placeholder="Add a note…" />
+            <button id="m-note-btn">Add</button>
+          </div>
+          <div class="log-title">Activity</div>
+          <ul class="log">${t.activity.map((a) => `<li><div class="l-text">${esc(a.text)}</div><div class="l-time">${fmt(a.at)}</div></li>`).join("")}</ul>
+        `;
+
+        // wire modal controls
+        $("#m-body").querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => {
+          const a = b.dataset.act;
+          if (a === "pickup") { if (!pickUp(t)) return; }
+          else if (a === "start") setStatus(t, "In progress");
+          else if (a === "resolve") setStatus(t, "Resolved");
+          else if (a === "close") setStatus(t, "Closed");
+          else if (a === "reopen") setStatus(t, "In progress", "Reopened");
+          openTicket(id); render(); toast(t.id + " updated");
+        }));
+        $("#m-owner").addEventListener("change", (e) => { reassign(t, e.target.value.trim()); openTicket(id); render(); });
+        $("#m-pri").addEventListener("change", (e) => { setPriority(t, e.target.value); openTicket(id); render(); });
+        const addN = () => { const v = $("#m-note").value; if (v.trim()) { addNote(t, v); openTicket(id); render(); } };
+        $("#m-note-btn").addEventListener("click", addN);
+        $("#m-note").addEventListener("keydown", (e) => { if (e.key === "Enter") addN(); });
+
+        $("#modal").hidden = false;
+      }
+      function closeModal() { $("#modal").hidden = true; }
+
+      // ---------- events ----------
+      function initSelects() {
+        $("#f-status").innerHTML = `<option value="">All statuses</option>` + STATUSES.map((s) => `<option>${s}</option>`).join("");
+        $("#f-priority").innerHTML = `<option value="">All priorities</option>` + PRIORITIES.map((s) => `<option>${s}</option>`).join("");
+        $("#f-category").innerHTML = `<option value="">All categories</option>` + CATEGORIES.map((s) => `<option>${s}</option>`).join("");
+        $("#t-cat").innerHTML = CATEGORIES.map((s) => `<option>${s}</option>`).join("");
+        $("#t-pri").innerHTML = PRIORITIES.map((s) => `<option ${s === "Normal" ? "selected" : ""}>${s}</option>`).join("");
+      }
+
+      function setMode(m) {
+        mode = m;
+        $$("#modes button").forEach((b) => b.classList.toggle("is-active", b.dataset.mode === m));
+        $("#view-resolve").style.display = m === "resolve" ? "" : "none";
+        $("#view-raise").style.display = m === "raise" ? "" : "none";
+        render();
+      }
+      const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+      function wire() {
+        $("#enter").addEventListener("click", () => {
+          $("#hero").style.display = "none";
+          $("#console").classList.add("is-on");
+          render();
+        });
+        $("#modes").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) setMode(b.dataset.mode); });
+
+        // filters
+        const bind = (id, key) => $(id).addEventListener("change", (e) => { filters[key] = e.target.value; render(); });
+        bind("#f-status", "status"); bind("#f-priority", "priority"); bind("#f-category", "category"); bind("#f-owner", "owner");
+        $("#clear-filters").addEventListener("click", () => {
+          filters = { status: "", priority: "", category: "", owner: "", q: filters.q };
+          ["#f-status", "#f-priority", "#f-category", "#f-owner"].forEach((s) => ($(s).value = ""));
+          render();
+        });
+        $("#search").addEventListener("input", (e) => { filters.q = e.target.value; render(); });
+
+        // agent name persistence
+        $("#agent").value = localStorage.getItem(AGENT) || "";
+        $("#agent").addEventListener("input", (e) => localStorage.setItem(AGENT, e.target.value));
+
+        // board interactions (delegated)
+        const board = $("#board");
+        board.addEventListener("click", (e) => { const c = e.target.closest(".card"); if (c) openTicket(c.dataset.id); });
+        let dragId = null;
+        board.addEventListener("dragstart", (e) => { const c = e.target.closest(".card"); if (c) { dragId = c.dataset.id; c.classList.add("dragging"); } });
+        board.addEventListener("dragend", (e) => { const c = e.target.closest(".card"); if (c) c.classList.remove("dragging"); });
+        board.addEventListener("dragover", (e) => { const col = e.target.closest(".col"); if (col) { e.preventDefault(); col.classList.add("drag-over"); } });
+        board.addEventListener("dragleave", (e) => { const col = e.target.closest(".col"); if (col) col.classList.remove("drag-over"); });
+        board.addEventListener("drop", (e) => {
+          const col = e.target.closest(".col"); if (!col || !dragId) return;
+          e.preventDefault(); col.classList.remove("drag-over");
+          const t = findT(dragId); const target = col.dataset.status;
+          if (t && t.status !== target) {
+            if (target === "Picked up" && !t.owner && agentName()) t.owner = agentName();
+            setStatus(t, target, "Status → " + target + " (dragged)");
+            render(); toast(t.id + " → " + target);
+          }
+          dragId = null;
+        });
+
+        // raise form
+        $("#raise-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const title = $("#t-title").value.trim(), name = $("#t-name").value.trim();
+          const msg = $("#form-msg");
+          if (!title || !name) { msg.className = "form-msg err"; msg.textContent = "Title and your name are both required."; return; }
+          const t = createTicket({ title, raiser: name, desc: $("#t-desc").value.trim(), category: $("#t-cat").value, priority: $("#t-pri").value });
+          msg.className = "form-msg ok"; msg.textContent = "Raised " + t.id + " — track it on the right.";
+          $("#t-title").value = ""; $("#t-desc").value = "";
+          renderMine(); renderStats(); toast(t.id + " raised");
+        });
+        $("#t-name").addEventListener("input", renderMine);
+        $("#mine").addEventListener("click", (e) => { const r = e.target.closest(".mine-row"); if (r) openTicket(r.dataset.id); });
+
+        // modal close
+        $("#modal").addEventListener("click", (e) => { if (e.target.closest("[data-close]")) closeModal(); });
+        document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#modal").hidden) closeModal(); });
+      }
+
+      // ---------- 3D hero mark (Three.js via CDN; degrades gracefully) ----------
+      function init3D() {
+        const canvas = $("#bg3d");
+        if (typeof THREE === "undefined" || !canvas) return;
+        try {
+          const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          const scene = new THREE.Scene();
+          const cam = new THREE.PerspectiveCamera(50, 1, 0.1, 100); cam.position.z = 4.2;
+          const geo = new THREE.IcosahedronGeometry(1.5, 1);
+          const mesh = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: 0x8b7bff, transparent: true, opacity: 0.55 }));
+          const inner = new THREE.Mesh(new THREE.IcosahedronGeometry(0.85, 0), new THREE.MeshBasicMaterial({ color: 0x3fe0d0, transparent: true, opacity: 0.08 }));
+          scene.add(mesh); scene.add(inner);
+          const dots = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x3fe0d0, size: 0.05 }));
+          scene.add(dots);
+          const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          function resize() {
+            const w = canvas.clientWidth, h = canvas.clientHeight;
+            renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix();
+          }
+          function tick() {
+            requestAnimationFrame(tick);
+            const s = reduce ? 0 : 1;
+            mesh.rotation.y += 0.0032 * s; mesh.rotation.x += 0.0014 * s;
+            dots.rotation.y = mesh.rotation.y; dots.rotation.x = mesh.rotation.x;
+            inner.rotation.y -= 0.002 * s;
+            renderer.render(scene, cam);
+          }
+          window.addEventListener("resize", resize); resize(); tick();
+        } catch (e) { /* WebGL unavailable — hero still shows the gradient */ }
+      }
+
+      // ---------- boot ----------
+      load(); initSelects(); wire(); setMode("resolve");
+      // load Three.js, then init the mark (non-blocking; app works without it)
+      const s = document.createElement("script");
+      s.src = "https://unpkg.com/three@0.128.0/build/three.min.js";
+      s.onload = init3D; s.onerror = () => {};
+      document.head.appendChild(s);
+    </script>
+  </body>
+</html>
