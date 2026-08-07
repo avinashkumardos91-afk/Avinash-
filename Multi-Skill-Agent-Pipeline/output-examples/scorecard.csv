@@ -1,0 +1,9 @@
+Competency,"What ""strong"" looks like",Interview stage,Score (1-4),Evidence / notes
+C1 · Backend & API design,"Clean API contracts; idempotency by design; empathy for the callers of their API",Technical exercise,,
+C2 · Data modelling & correctness,"Correctness-first instinct; understands consistency vs availability; designs for auditability",Technical exercise,,
+C3 · Payments / domain depth,"Real money-movement exposure; respects failure modes; reconciliation from day one",System design + behavioural,,
+C4 · Production ownership & reliability,"Has owned incidents end to end; blameless; proactive alerting and runbooks",System design + behavioural,,
+C5 · Communication & collaboration,"Explains trade-offs without jargon; disagrees well; seeks the best answer",Founder conversation,,
+C6 · Founding / 0→1 mindset,"Pragmatic prioritisation; comfort with ambiguity; ships without cutting correctness corners",Founder conversation,,
+"Overall recommendation (Strong No / No / Yes / Strong Yes)",,,,
+"Would you want to work with them? (Y / N)",,,,
