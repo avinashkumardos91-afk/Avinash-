@@ -1,0 +1,17 @@
+{
+  "title": "Editor crash causes draft data loss for Pro user (2nd occurrence this month)",
+  "category": "Bug",
+  "severity": "High",
+  "priority": "P1",
+  "affected_area": "Editor",
+  "customer_impact": "Pro user (Rahul Verma) lost ~2 hours of unsaved work; repeat incident, active cancellation risk.",
+  "description": "The editor crashed during active writing and the in-progress draft was not recovered on restart. Customer reports this is the second occurrence this month, suggesting a gap in autosave or crash-recovery for unsaved drafts rather than a one-off.",
+  "steps_to_reproduce": [
+    "Not reliably provided by customer — needs follow-up.",
+    "Investigate autosave cadence and crash-recovery for unsaved editor drafts.",
+    "Check crash logs for this account around the reported time."
+  ],
+  "suggested_owner_team": "Editor",
+  "tags": ["crash", "data-loss", "autosave", "crash-recovery", "pro", "repeat"],
+  "source": "customer-support"
+}

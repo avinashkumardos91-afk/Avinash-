@@ -1,0 +1,9 @@
+{
+  "customer_name": "Rahul Verma",
+  "category": "Bug",
+  "severity": "High",
+  "sentiment": "Angry",
+  "summary": "App crash wiped a Pro user's in-progress draft, causing ~2 hours of data loss (second occurrence this month).",
+  "affected_area": "Editor",
+  "signals": ["data loss", "paying customer (Pro)", "repeat issue", "cancellation risk"]
+}
