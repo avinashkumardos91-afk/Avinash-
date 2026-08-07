@@ -1,0 +1,33 @@
+name: Hiring-Kit Pipeline
+
+# Runs the multi-skill pipeline's quality gate live on GitHub for every change.
+on:
+  push:
+    paths:
+      - "Multi-Skill-Agent-Pipeline/**"
+      - ".claude/skills/**"
+      - ".github/workflows/pipeline.yml"
+  pull_request:
+  workflow_dispatch: {}
+
+jobs:
+  validate:
+    name: Validate pipeline runs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate example run (Founding Backend Engineer)
+        run: python Multi-Skill-Agent-Pipeline/validate_pipeline.py --dir output-examples
+
+      - name: Validate live run (Growth Marketing Lead)
+        run: python Multi-Skill-Agent-Pipeline/validate_pipeline.py --dir runs/growth-marketing-lead
+
+      - name: Summary
+        run: echo "✅ Both pipeline runs are consistent and chainable."
