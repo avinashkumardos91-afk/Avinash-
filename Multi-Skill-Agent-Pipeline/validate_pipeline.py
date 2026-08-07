@@ -17,12 +17,13 @@ Usage: python validate_pipeline.py
 """
 from __future__ import annotations
 
+import argparse
 import csv
 import re
 import sys
 from pathlib import Path
 
-OUT = Path(__file__).resolve().parent / "output-examples"
+BASE = Path(__file__).resolve().parent
 COMPETENCY_HEADING = re.compile(r"^###\s+(C\d+)\s*·", re.MULTILINE)  # "### C1 · Name"
 COMPETENCY_CODE = re.compile(r"^(C\d+)\b")
 EXPECTED_HEADER = [
@@ -58,8 +59,14 @@ def main() -> int:
         sys.stdout.reconfigure(encoding="utf-8")
     except (AttributeError, OSError):
         pass
-    print("Validating Hiring-Kit pipeline outputs…\n")
-    jd, kit, card = (OUT / n for n in ("job-description.md", "interview-kit.md", "scorecard.csv"))
+
+    ap = argparse.ArgumentParser(description="Validate a Hiring-Kit pipeline run.")
+    ap.add_argument("--dir", default="output-examples",
+                    help="run folder (relative to this script) holding the three outputs")
+    out = (BASE / ap.parse_args().dir).resolve()
+
+    print(f"Validating Hiring-Kit pipeline outputs in {out.name}/…\n")
+    jd, kit, card = (out / n for n in ("job-description.md", "interview-kit.md", "scorecard.csv"))
 
     missing = [p.name for p in (jd, kit, card) if not p.exists()]
     if missing:
