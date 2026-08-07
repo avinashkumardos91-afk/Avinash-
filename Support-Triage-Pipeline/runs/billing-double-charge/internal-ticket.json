@@ -1,0 +1,17 @@
+{
+  "title": "Duplicate charge — customer billed ₹1,499 twice for one monthly subscription",
+  "category": "Billing",
+  "severity": "Normal",
+  "priority": "P2",
+  "affected_area": "Billing",
+  "customer_impact": "Paying customer (Meera Nair) was charged ₹1,499 twice on the 3rd for a single subscription; refund requested, budget impact.",
+  "description": "A single monthly subscription produced two identical ₹1,499 charges on the same day. Likely a duplicate charge from a retried/double-submitted payment. Confirm there is only one active subscription, refund the extra charge, and check the payment retry/idempotency path to prevent recurrence.",
+  "steps_to_reproduce": [
+    "Look up the customer's billing records for the 3rd — confirm two identical ₹1,499 charges.",
+    "Verify only one active subscription exists on the account.",
+    "Investigate payment retry/idempotency for double-submitted charges."
+  ],
+  "suggested_owner_team": "Billing",
+  "tags": ["duplicate-charge", "refund", "idempotency", "payments"],
+  "source": "customer-support"
+}

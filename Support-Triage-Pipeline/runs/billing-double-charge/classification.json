@@ -1,0 +1,9 @@
+{
+  "customer_name": "Meera Nair",
+  "category": "Billing",
+  "severity": "Normal",
+  "sentiment": "Frustrated",
+  "summary": "Pro customer was charged ₹1,499 twice for a single monthly subscription and is requesting a refund of the duplicate charge.",
+  "affected_area": "Billing",
+  "signals": ["duplicate charge", "paying customer", "refund requested", "clear workaround (refund)"]
+}
