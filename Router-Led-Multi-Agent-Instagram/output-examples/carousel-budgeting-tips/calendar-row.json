@@ -1,0 +1,15 @@
+{
+  "_note": "Row the content-calendar-logger wrote to Google Sheets via the Zapier MCP 'Create Spreadsheet Row' action.",
+  "Topic": "Budgeting tips for students",
+  "Format": "Carousel",
+  "Hook": "5 money rules broke students swear by.",
+  "Status": "Ready",
+  "Planned Date": "",
+  "Priority": "Normal",
+  "_zapier_response": {
+    "status": "success",
+    "row": 43,
+    "spreadsheet": "Content Calendar 2026",
+    "worksheet": "Instagram"
+  }
+}
